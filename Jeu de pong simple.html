@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        #game-canvas {
+            background-color: #000;
+            display: block;
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        #controls {
+            position: absolute;
+            top: 60px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 16px;
+        }
+
+        #start-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #restart-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #restart-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="500"></canvas>
+        <div id="score">0 - 0</div>
+        <div id="controls">
+            Joueur 1 (gauche) : <strong>W</strong> (haut) / <strong>S</strong> (bas) |
+            Joueur 2 (droite) : <strong>↑</strong> (haut) / <strong>↓</strong> (bas)
+        </div>
+        <div id="start-message">Appuyez sur <strong>Espace</strong> pour commencer</div>
+        <button id="restart-btn">Recommencer</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const controlsElement = document.getElementById('controls');
+        const startMessageElement = document.getElementById('start-message');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Paramètres du jeu
+        const ballRadius = 10;
+        let x = canvas.width / 2;
+        let y = canvas.height / 2;
+        let dx = 0;
+        let dy = 0;
+        let gameStarted = false;
+
+        // Raquettes
+        const paddleHeight = 100;
+        const paddleWidth = 15;
+        let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
+        let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+
+        // Scores
+        let leftScore = 0;
+        let rightScore = 0;
+
+        // Contrôles
+        let upPressed = false;
+        let downPressed = false;
+        let wPressed = false;
+        let sPressed = false;
+
+        // Écouteurs d'événements
+        document.addEventListener('keydown', keyDownHandler);
+        document.addEventListener('keyup', keyUpHandler);
+        restartBtn.addEventListener('click', resetGame);
+
+        function keyDownHandler(e) {
+            if (e.code === 'Space' && !gameStarted) {
+                gameStarted = true;
+                dx = 5;
+                dy = 5;
+                startMessageElement.style.display = 'none';
+                requestAnimationFrame(draw);
+            }
+            if (e.key === 'ArrowUp') upPressed = true;
+            if (e.key === 'ArrowDown') downPressed = true;
+            if (e.key === 'w') wPressed = true;
+            if (e.key === 's') sPressed = true;
+        }
+
+        function keyUpHandler(e) {
+            if (e.key === 'ArrowUp') upPressed = false;
+            if (e.key === 'ArrowDown') downPressed = false;
+            if (e.key === 'w') wPressed = false;
+            if (e.key === 's') sPressed = false;
+        }
+
+        function resetGame() {
+            x = canvas.width / 2;
+            y = canvas.height / 2;
+            dx = 0;
+            dy = 0;
+            gameStarted = false;
+            leftScore = 0;
+            rightScore = 0;
+            scoreElement.textContent = '0 - 0';
+            restartBtn.style.display = 'none';
+            startMessageElement.style.display = 'block';
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddles() {
+            // Raquette gauche
+            ctx.beginPath();
+            ctx.rect(0, leftPaddleY, paddleWidth, paddleHeight);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.closePath();
+
+            // Raquette droite
+            ctx.beginPath();
+            ctx.rect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawNet() {
+            for (let i = 0; i < canvas.height; i += 30) {
+                ctx.beginPath();
+                ctx.rect(canvas.width / 2 - 1, i, 2, 20);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function draw() {
+            if (!gameStarted) return;
+
+            // Effacer le canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner le filet, la balle et les raquettes
+            drawNet();
+            drawBall();
+            drawPaddles();
+
+            // Déplacement de la balle
+            x += dx;
+            y += dy;
+
+            // Collision avec le haut et le bas
+            if (y + dy < ballRadius || y + dy > canvas.height - ballRadius) {
+                dy = -dy;
+            }
+
+            // Collision avec les raquettes
+            if (x + dx < paddleWidth && y > leftPaddleY && y < leftPaddleY + paddleHeight) {
+                dx = -dx;
+            }
+            if (x + dx > canvas.width - paddleWidth && y > rightPaddleY && y < rightPaddleY + paddleHeight) {
+                dx = -dx;
+            }
+
+            // Marquer un point
+            if (x + dx < 0) {
+                rightScore++;
+                scoreElement.textContent = `${leftScore} - ${rightScore}`;
+                x = canvas.width / 2;
+                y = canvas.height / 2;
+                dx = -5;
+                dy = 5;
+            }
+            if (x + dx > canvas.width) {
+                leftScore++;
+                scoreElement.textContent = `${leftScore} - ${rightScore}`;
+                x = canvas.width / 2;
+                y = canvas.height / 2;
+                dx = 5;
+                dy = 5;
+            }
+
+            // Déplacement des raquettes
+            if (wPressed && leftPaddleY > 0) {
+                leftPaddleY -= 7;
+            }
+            if (sPressed && leftPaddleY < canvas.height - paddleHeight) {
+                leftPaddleY += 7;
+            }
+            if (upPressed && rightPaddleY > 0) {
+                rightPaddleY -= 7;
+            }
+            if (downPressed && rightPaddleY < canvas.height - paddleHeight) {
+                rightPaddleY += 7;
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // Afficher les commandes et le message de démarrage
+        drawNet();
+        drawPaddles();
+    </script>
+</body>
+</html>

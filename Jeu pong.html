@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pig Pong</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        h1 {
+            color: white;
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 5px;
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .player-score {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 30px;
+            border-radius: 15px;
+            min-width: 100px;
+        }
+
+        canvas {
+            background: #1a1a2e;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .controls {
+            margin-top: 20px;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <h1>PONG</h1>
+            <div class="score">
+                <div class="player-score">
+                    <div>Joueur</div>
+                    <div id="playerScore">0</div>
+                </div>
+                <div class="player-score">
+                    <div>IA</div>
+                    <div id="aiScore">0</div>
+                </div>
+            </div>
+            <canvas id="pongCanvas" width="800" height="500"></canvas>
+            <div class="controls">
+                <p>↑ ↓ - Déplacer la raquette</p>
+                <p>Appuyez sur ESPACE pour commencer</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let playerScoreEl = document.getElementById('playerScore');
+        let aiScoreEl = document.getElementById('aiScore');
+
+        let gameStarted = false;
+        let playerScore = 0;
+        let aiScore = 0;
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 8,
+            speed: 5,
+            velocityX: 5,
+            velocityY: 5,
+            color: '#fff'
+        };
+
+        const player = {
+            x: 20,
+            y: canvas.height / 2 - 50,
+            width: 12,
+            height: 100,
+            speed: 8,
+            dy: 0,
+            color: '#00d9ff'
+        };
+
+        const ai = {
+            x: canvas.width - 32,
+            y: canvas.height / 2 - 50,
+            width: 12,
+            height: 100,
+            speed: 4,
+            color: '#ff006e'
+        };
+
+        const net = {
+            x: canvas.width / 2 - 1,
+            y: 0,
+            width: 2,
+            height: 10,
+            color: 'rgba(255, 255, 255, 0.3)'
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                player.dy = -player.speed;
+            } else if (e.key === 'ArrowDown') {
+                player.dy = player.speed;
+            } else if (e.key === ' ') {
+                if (!gameStarted) {
+                    gameStarted = true;
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                player.dy = 0;
+            }
+        });
+
+        function drawRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawCircle(x, y, r, color) {
+            ctx.fillStyle = color;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawNet() {
+            for (let i = 0; i < canvas.height; i += 20) {
+                drawRect(net.x, net.y + i, net.width, net.height, net.color);
+            }
+        }
+
+        function collision(b, p) {
+            return b.x + b.radius > p.x && 
+                   b.x - b.radius < p.x + p.width && 
+                   b.y + b.radius > p.y && 
+                   b.y - b.radius < p.y + p.height;
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.speed = 5;
+            ball.velocityX = -ball.velocityX;
+            ball.velocityY = 5 * (Math.random() > 0.5 ? 1 : -1);
+        }
+
+        function update() {
+            if (!gameStarted) return;
+
+            player.y += player.dy;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+            ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
+            if (ai.y < 0) ai.y = 0;
+            if (ai.y + ai.height > canvas.height) ai.y = canvas.height - ai.height;
+
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            let paddle = (ball.x < canvas.width / 2) ? player : ai;
+
+            if (collision(ball, paddle)) {
+                let collidePoint = ball.y - (paddle.y + paddle.height / 2);
+                collidePoint = collidePoint / (paddle.height / 2);
+                
+                let angleRad = collidePoint * Math.PI / 4;
+                
+                let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+                
+                ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+                ball.velocityY = ball.speed * Math.sin(angleRad);
+                
+                ball.speed += 0.2;
+            }
+
+            if (ball.x - ball.radius < 0) {
+                aiScore++;
+                aiScoreEl.textContent = aiScore;
+                resetBall();
+            } else if (ball.x + ball.radius > canvas.width) {
+                playerScore++;
+                playerScoreEl.textContent = playerScore;
+                resetBall();
+            }
+        }
+
+        function render() {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawNet();
+            drawRect(player.x, player.y, player.width, player.height, player.color);
+            drawRect(ai.x, ai.y, ai.width, ai.height, ai.color);
+            drawCircle(ball.x, ball.y, ball.radius, ball.color);
+
+            if (!gameStarted) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Appuyez sur ESPACE pour commencer', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>

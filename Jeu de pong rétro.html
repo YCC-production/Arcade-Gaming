@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Retro</title>
+    <!-- Chargement de Tailwind CSS via CDN pour un style moderne et propre -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Styles personnalisés pour le jeu */
+        body {
+            /* Assure que l'arrière-plan du corps s'étend et le centrage du contenu Tailwind */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1f2937; /* Gris foncé - slate-800 */
+        }
+        #pongCanvas {
+            box-shadow: 0 0 30px rgba(0, 255, 128, 0.4); /* Ombre verte vive pour le look propre */
+            border-radius: 8px;
+            /* Le fond noir du terrain est géré par JavaScript (ctx.fillRect) */
+        }
+        /* Style pour les messages de jeu */
+        #messageBox {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="game-container" class="flex flex-col items-center justify-center p-6 bg-gray-800 rounded-xl shadow-2xl">
+        <h1 class="text-xl md:text-2xl font-bold mb-4 text-green-400">
+            Jeu de Pong Rétro
+        </h1>
+        <p class="text-sm text-gray-400 mb-6 text-center">
+            Joueur 1 (Gauche) : <span class="text-yellow-400 font-semibold">Z</span> (Haut) / <span class="text-yellow-400 font-semibold">S</span> (Bas)
+            <span class="mx-4">|</span>
+            Joueur 2 (Droite) : <span class="text-yellow-400 font-semibold">↑</span> (Haut) / <span class="text-yellow-400 font-semibold">↓</span> (Bas)
+        </p>
+        
+        <!-- Canvas de jeu -->
+        <canvas id="pongCanvas" width="600" height="400" class="bg-black"></canvas>
+        
+        <!-- Zone de message (remplace l'alerte) -->
+        <div id="messageBox" class="mt-6 p-3 bg-red-600 text-white rounded-lg font-bold text-center opacity-0 pointer-events-none">
+            <!-- Le message de victoire apparaît ici -->
+        </div>
+    </div>
+
+    <script>
+        // --- Code JavaScript du jeu de Pong ---
+
+        // 1. Initialisation du Canvas et du Contexte
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+
+        // Dimensions du jeu (correspondent aux attributs du canvas)
+        const game = {
+            width: canvas.width,
+            height: canvas.height,
+        };
+
+        // Constantes du jeu
+        const paddleWidth = 10;
+        const paddleHeight = 80; // Légèrement plus grand pour faciliter le jeu
+        const ballRadius = 6;
+        const winningScore = 5;
+
+        // Vitesse de base
+        const baseSpeed = 5;
+        const ballInitialSpeed = 4;
+        const speedIncrement = 0.5; // Augmentation progressive de la vitesse
+
+        // État des touches pressées
+        const keys = {
+            z: false,
+            s: false,
+            up: false,
+            down: false
+        };
+
+        // Objets du jeu
+        let player1 = {
+            x: 10,
+            y: game.height / 2 - paddleHeight / 2,
+            dy: 0,
+            speed: baseSpeed,
+            score: 0
+        };
+
+        let player2 = {
+            x: game.width - paddleWidth - 10,
+            y: game.height / 2 - paddleHeight / 2,
+            dy: 0,
+            speed: baseSpeed,
+            score: 0
+        };
+
+        let ball = {
+            x: game.width / 2,
+            y: game.height / 2,
+            dx: ballInitialSpeed,
+            dy: ballInitialSpeed * (Math.random() > 0.5 ? 1 : -1) * 0.75,
+            speed: ballInitialSpeed
+        };
+        
+        // MODIFICATION ICI: Le jeu commence en pause.
+        let gameActive = false;
+
+        // 2. Fonctions de Dessin
+        function drawRect(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+        }
+
+        function drawCircle(x, y, r, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2, false);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawNet() {
+            ctx.beginPath();
+            ctx.setLineDash([10, 10]); // Pointillés plus visibles
+            ctx.strokeStyle = "#4b5563"; // Gris clair
+            ctx.lineWidth = 4;
+            ctx.moveTo(game.width / 2, 0);
+            ctx.lineTo(game.width / 2, game.height);
+            ctx.stroke();
+            ctx.setLineDash([]); // Réinitialiser
+        }
+
+        function drawScore() {
+            ctx.fillStyle = "#FFF";
+            ctx.font = "40px sans-serif";
+            ctx.fillText(player1.score, game.width / 4 - 20, 50);
+            ctx.fillText(player2.score, game.width * 3 / 4, 50);
+        }
+
+        function drawWinner(text) {
+            ctx.fillStyle = "#0d9488"; // Couleur cyan pour le texte gagnant
+            
+            // Si les scores sont à zéro, afficher "PONG" pour le titre
+            const titleText = (player1.score === 0 && player2.score === 0) ? "PONG RÉTRO" : text;
+            
+            ctx.font = "48px sans-serif";
+            ctx.textAlign = 'center';
+            ctx.fillText(titleText, game.width / 2, game.height / 2 - 24);
+            ctx.font = "24px sans-serif";
+            
+            // Texte de l'instruction dynamique
+            const instructionText = (player1.score === 0 && player2.score === 0) 
+                                    ? "Appuyez sur ESPACE pour commencer" 
+                                    : "Appuyez sur ESPACE pour recommencer";
+            ctx.fillText(instructionText, game.width / 2, game.height / 2 + 24);
+            
+            ctx.textAlign = 'left'; // Réinitialiser l'alignement
+        }
+        
+        function showMessage(text, duration = 3000) {
+            messageBox.textContent = text;
+            messageBox.style.opacity = '1';
+            messageBox.classList.remove('bg-red-600');
+            messageBox.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                messageBox.classList.remove('bg-green-600');
+                messageBox.classList.add('bg-red-600');
+            }, duration);
+        }
+
+        // 3. Logique du Jeu
+
+        function resetBall(direction) {
+            ball.x = game.width / 2;
+            ball.y = game.height / 2;
+            ball.speed = ballInitialSpeed;
+            
+            // Lancer la balle vers le joueur qui vient de marquer (inversé)
+            ball.dx = ball.speed * direction;
+            ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.75;
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Mouvement des raquettes
+            player1.y += player1.dy;
+            player2.y += player2.dy;
+
+            // Limiter aux bords
+            player1.y = Math.max(0, Math.min(game.height - paddleHeight, player1.y));
+            player2.y = Math.max(0, Math.min(game.height - paddleHeight, player2.y));
+
+            // Déplacement de la balle
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Collision avec les murs Haut/Bas
+            if (ball.y + ballRadius > game.height || ball.y - ballRadius < 0) {
+                ball.dy = -ball.dy;
+            }
+
+            // Collision avec les raquettes (simplifiée)
+            
+            // Collision avec Joueur 1 (Gauche)
+            if (ball.x - ballRadius <= player1.x + paddleWidth && 
+                ball.x - ballRadius >= player1.x && // S'assurer que la balle ne traverse pas complètement
+                ball.y + ballRadius >= player1.y && 
+                ball.y - ballRadius <= player1.y + paddleHeight) {
+                
+                // Augmenter la vitesse et inverser direction
+                ball.speed += speedIncrement;
+                
+                let relativeIntersectY = (player1.y + (paddleHeight / 2)) - ball.y;
+                let normalizedRelativeIntersectionY = (relativeIntersectY / (paddleHeight / 2));
+                let bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 4);
+
+                ball.dx = Math.abs(Math.cos(bounceAngle) * ball.speed);
+                ball.dy = -Math.sin(bounceAngle) * ball.speed;
+            }
+            
+            // Collision avec Joueur 2 (Droite)
+            if (ball.x + ballRadius >= player2.x && 
+                ball.x + ballRadius <= player2.x + paddleWidth && // S'assurer que la balle ne traverse pas complètement
+                ball.y + ballRadius >= player2.y && 
+                ball.y - ballRadius <= player2.y + paddleHeight) {
+                
+                // Augmenter la vitesse et inverser direction
+                ball.speed += speedIncrement;
+                
+                let relativeIntersectY = (player2.y + (paddleHeight / 2)) - ball.y;
+                let normalizedRelativeIntersectionY = (relativeIntersectY / (paddleHeight / 2));
+                let bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 4);
+
+                ball.dx = -Math.abs(Math.cos(bounceAngle) * ball.speed);
+                ball.dy = -Math.sin(bounceAngle) * ball.speed;
+            }
+            
+            // Gestion des Points et Victoire
+            if (ball.x < 0) {
+                // Point pour Joueur 2
+                player2.score++;
+                if (player2.score >= winningScore) {
+                    gameActive = false;
+                    showMessage("Joueur 2 (Droite) GAGNE ! Appuyez sur ESPACE.", 50000);
+                } else {
+                    resetBall(-1); // Lance la balle vers la gauche (Joueur 1)
+                }
+            } else if (ball.x > game.width) {
+                // Point pour Joueur 1
+                player1.score++;
+                if (player1.score >= winningScore) {
+                    gameActive = false;
+                    showMessage("Joueur 1 (Gauche) GAGNE ! Appuyez sur ESPACE.", 50000);
+                } else {
+                    resetBall(1); // Lance la balle vers la droite (Joueur 2)
+                }
+            }
+        }
+        
+        // Fonction pour recommencer la partie
+        function restartGame() {
+            player1.score = 0;
+            player2.score = 0;
+            player1.y = game.height / 2 - paddleHeight / 2;
+            player2.y = game.height / 2 - paddleHeight / 2;
+            ball.speed = ballInitialSpeed;
+            resetBall(Math.random() > 0.5 ? 1 : -1);
+            gameActive = true;
+            messageBox.style.opacity = '0';
+        }
+
+        // 4. Boucle de Jeu
+        function loop() {
+            // Dessiner le fond noir (effacement)
+            drawRect(0, 0, game.width, game.height, "#000"); 
+
+            if (gameActive) {
+                update();
+            } else {
+                // Détermine le texte du gagnant ou le texte d'introduction
+                let winnerText = player1.score > player2.score ? "Joueur 1 GAGNE" : "Joueur 2 GAGNE";
+                drawWinner(winnerText);
+            }
+
+            // Dessiner les éléments
+            drawNet();
+            drawScore();
+            drawRect(player1.x, player1.y, paddleWidth, paddleHeight, "#00ff80"); // Raquette Joueur 1 (Vert)
+            drawRect(player2.x, player2.y, paddleWidth, paddleHeight, "#00ff80"); // Raquette Joueur 2 (Vert)
+            drawCircle(ball.x, ball.y, ballRadius, "#FFF"); // Balle Blanche
+
+            requestAnimationFrame(loop);
+        }
+
+        // 5. Gestion des Contrôles (Clavier)
+        document.addEventListener('keydown', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'z': keys.z = true; break;
+                case 's': keys.s = true; break;
+                case 'arrowup': keys.up = true; break;
+                case 'arrowdown': keys.down = true; break;
+                case ' ': // Touche Espace pour commencer/recommencer
+                    if (!gameActive) {
+                        e.preventDefault(); // Empêcher le scroll
+                        restartGame();
+                    }
+                    break;
+            }
+            
+            // Mettre à jour la direction des raquettes en fonction de l'état des touches
+            if (keys.z || keys.s) {
+                player1.dy = keys.z ? -player1.speed : player1.speed;
+            } else {
+                player1.dy = 0;
+            }
+
+            if (keys.up || keys.down) {
+                player2.dy = keys.up ? -player2.speed : player2.speed;
+            } else {
+                player2.dy = 0;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.key.toLowerCase()) {
+                case 'z': keys.z = false; break;
+                case 's': keys.s = false; break;
+                case 'arrowup': keys.up = false; break;
+                case 'arrowdown': keys.down = false; break;
+            }
+            
+            // Mettre à jour la direction des raquettes
+            if (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 's') {
+                 if (keys.z) player1.dy = -player1.speed;
+                 else if (keys.s) player1.dy = player1.speed;
+                 else player1.dy = 0;
+            }
+
+            if (e.key.toLowerCase() === 'arrowup' || e.key.toLowerCase() === 'arrowdown') {
+                if (keys.up) player2.dy = -player2.speed;
+                else if (keys.down) player2.dy = player2.speed;
+                else player2.dy = 0;
+            }
+        });
+
+        // Démarrer la boucle de jeu au chargement de la fenêtre
+        window.onload = function() {
+            loop();
+        }
+    </script>
+</body>
+</html>
