@@ -35,6 +35,7 @@
             padding: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             border: 1px solid rgba(255, 255, 255, 0.18);
+            position: relative;
         }
 
         h1 {
@@ -103,6 +104,10 @@
             border-radius: 10px;
         }
 
+        .canvas-container {
+            position: relative;
+        }
+
         canvas {
             background: #1a1a2e;
             border-radius: 15px;
@@ -111,6 +116,26 @@
             margin: 0 auto;
             max-width: 100%;
             height: auto;
+        }
+
+        .countdown {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-weight: 900;
+            color: #00d9ff;
+            text-shadow: 0 0 40px rgba(0, 217, 255, 0.8);
+            animation: pulse 1s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
 
         .controls-info {
@@ -368,6 +393,26 @@
                 display: none;
             }
         }
+
+        @media (orientation: portrait) {
+            body {
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            .container {
+                max-width: 95vw;
+            }
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 8px;
+            }
+            .game-wrapper {
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -394,7 +439,10 @@
                 <div class="stat">Max: <span id="maxScore">5</span></div>
             </div>
             
-            <canvas id="gameCanvas" width="800" height="500"></canvas>
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="500"></canvas>
+                <div id="countdown" class="countdown hidden"></div>
+            </div>
             
             <div class="mobile-controls" id="mobileControls">
                 <div class="mobile-paddle">
@@ -457,12 +505,12 @@
 
         <div class="pause-screen hidden" id="pauseScreen">
             <div>⏸️ PAUSE</div>
-            <div style="font-size: 0.5em; margin-top: 20px;">Cliquez sur Reprendre ou appuyez sur P</div>
+            <div style="font-size: 0.5em; margin-top: 20px;">Cliquez ici ou appuyez sur P pour reprendre</div>
         </div>
 
         <div class="victory-screen hidden" id="victoryScreen">
             <h2>🏆 VICTOIRE 🏆</h2>
-            <p id="winnerText">Joueur 1 gagne!</p>
+            <p id="winnerText">Bravo Joueur 1!</p>
             <p id="finalScore">5 - 3</p>
             <button class="victory-btn" id="playAgainBtn">REJOUER</button>
         </div>
@@ -479,6 +527,31 @@
         let isPaused = false;
         let player1Score = 0;
         let player2Score = 0;
+        let countdownActive = false;
+
+        // Audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, duration) {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                osc.start();
+                osc.stop(audioContext.currentTime + duration);
+            } catch(e) {}
+        }
+
+        function playHit() { playTone(800, 0.1); }
+        function playScore() { playTone(400, 0.3); setTimeout(() => playTone(500, 0.3), 100); }
+        function playVictory() {
+            [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.4), i * 150));
+        }
 
         function resizeCanvas() {
             const container = document.querySelector('.game-wrapper');
@@ -504,8 +577,8 @@
             radius: 8,
             baseSpeed: 5,
             speed: 5,
-            velocityX: 5,
-            velocityY: 5,
+            velocityX: 0,
+            velocityY: 0,
             color: '#fff'
         };
 
@@ -580,6 +653,7 @@
             gameStarted = true;
             isPaused = false;
             resetGame();
+            startCountdown();
         });
 
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
@@ -638,13 +712,46 @@
             isPaused = !isPaused;
             if (isPaused) {
                 document.getElementById('pauseScreen').classList.remove('hidden');
+                document.getElementById('pauseBtn').textContent = '▶ REPRENDRE';
             } else {
                 document.getElementById('pauseScreen').classList.add('hidden');
+                document.getElementById('pauseBtn').textContent = '⏸ PAUSE';
             }
         }
 
+        function startCountdown() {
+            countdownActive = true;
+            let count = 3;
+            const countdownEl = document.getElementById('countdown');
+            
+            countdownEl.textContent = count;
+            countdownEl.classList.remove('hidden');
+            playTone(600, 0.15);
+            
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownEl.textContent = count;
+                    countdownEl.style.animation = 'none';
+                    setTimeout(() => countdownEl.style.animation = 'pulse 1s ease-in-out', 10);
+                    playTone(600, 0.15);
+                } else {
+                    countdownEl.classList.add('hidden');
+                    countdownActive = false;
+                    // Lancer la balle à vitesse réduite
+                    const angle = (Math.random() * Math.PI / 3) - Math.PI / 6;
+                    const dir = Math.random() < 0.5 ? -1 : 1;
+                    ball.velocityX = dir * 3 * Math.cos(angle);
+                    ball.velocityY = 3 * Math.sin(angle);
+                    ball.speed = 3;
+                    playTone(800, 0.2);
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
         function updatePlayers() {
-            if (isPaused) return;
+            if (isPaused || countdownActive) return;
 
             // Joueur 1
             if (keys['w'] || p1TouchUp) {
@@ -715,9 +822,9 @@
         function resetBall() {
             ball.x = canvas.width / 2;
             ball.y = canvas.height / 2;
-            ball.speed = ball.baseSpeed;
-            ball.velocityX = ball.baseSpeed * (Math.random() > 0.5 ? 1 : -1);
-            ball.velocityY = ball.baseSpeed * (Math.random() * 2 - 1);
+            ball.velocityX = 0;
+            ball.velocityY = 0;
+            ball.speed = 5;
         }
 
         function resetGame() {
@@ -733,11 +840,17 @@
             gameStarted = false;
             isPaused = false;
             
-            const winnerName = winner === 1 ? 'Joueur 1' : (gameMode === 'ai' ? 'IA' : 'Joueur 2');
-            document.getElementById('winnerText').textContent = winnerName + ' gagne!';
-            document.getElementById('finalScore').textContent = player1Score + ' - ' + player2Score;
+            let winnerName;
+            if (gameMode === 'ai') {
+                winnerName = winner === 1 ? 'Joueur' : 'IA';
+            } else {
+                winnerName = winner === 1 ? 'Joueur 1' : 'Joueur 2';
+            }
             
+            document.getElementById('winnerText').textContent = 'Bravo ' + winnerName + '!';
+            document.getElementById('finalScore').textContent = player1Score + ' - ' + player2Score;
             document.getElementById('victoryScreen').classList.remove('hidden');
+            playVictory();
         }
 
         function checkWinner() {
@@ -749,7 +862,7 @@
         }
 
         function update() {
-            if (!gameStarted || isPaused) return;
+            if (!gameStarted || isPaused || countdownActive) return;
 
             updatePlayers();
 
@@ -758,6 +871,7 @@
 
             if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
                 ball.velocityY = -ball.velocityY;
+                playHit();
             }
 
             let paddle = (ball.x < canvas.width / 2) ? player1 : player2;
@@ -774,18 +888,29 @@
                 
                 ball.speed += 0.2;
                 document.getElementById('ballSpeed').textContent = Math.round(ball.speed);
+                playHit();
             }
 
             if (ball.x - ball.radius < 0) {
                 player2Score++;
                 document.getElementById('player2Score').textContent = player2Score;
-                resetBall();
-                checkWinner();
+                playScore();
+                if (player2Score >= maxScore) {
+                    showVictory(2);
+                } else {
+                    resetBall();
+                    startCountdown();
+                }
             } else if (ball.x + ball.radius > canvas.width) {
                 player1Score++;
                 document.getElementById('player1Score').textContent = player1Score;
-                resetBall();
-                checkWinner();
+                playScore();
+                if (player1Score >= maxScore) {
+                    showVictory(1);
+                } else {
+                    resetBall();
+                    startCountdown();
+                }
             }
         }
 
@@ -809,8 +934,7 @@
     </script>
 </body>
 </html>
-        gameLoop();
-    </script>
 </body>
 
 </html>
+
