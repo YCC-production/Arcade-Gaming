@@ -1,503 +1,559 @@
 
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini jeux</title>
+    <title>Arcade Master Hub</title>
+    <!-- Polices pour les thèmes -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* --- SYSTÈME DE THÈMES --- */
+        :root {
+            --primary: #ef476f;
+            --secondary: #118ab2;
+            --accent: #ffd700;
+            --font-main: 'Inter', sans-serif;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --border-glow: rgba(239, 71, 111, 0.3);
+            /* Couleurs du style original */
+            --original-bg: linear-gradient(135deg, #0a1128 0%, #001f54 50%, #034078 100%);
+        }
+
+        .theme-retro {
+            --primary: #00ff00;
+            --secondary: #ff00ff;
+            --accent: #ffff00;
+            --font-main: 'Press Start 2P', cursive;
+            --card-bg: rgba(0, 0, 0, 0.9);
+            --border-glow: rgba(0, 255, 0, 0.5);
+        }
+
+        .theme-modern {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #ff0055;
+            --font-main: 'Orbitron', sans-serif;
+            --card-bg: rgba(10, 10, 30, 0.5);
+            --border-glow: rgba(0, 242, 255, 0.5);
+        }
+
+        /* --- STYLES GÉNÉRAUX --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.2s;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a1128 0%, #001f54 50%, #034078 100%);
+            font-family: var(--font-main);
             color: white;
+            background: var(--original-bg); /* Fond original par défaut */
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* Animation de fond */
-        body::before {
-            content: '';
+        body.theme-retro { background: #000; }
+        body.theme-modern { background: #020205; }
+
+        /* Canvas d'arrière-plan */
+        #bg-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(239, 71, 111, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(17, 138, 178, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
             z-index: -1;
-            animation: pulse 15s ease-in-out infinite;
+            pointer-events: none;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Header */
-        header {
-            background: rgba(0, 31, 84, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 20px 0;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        .glass-header {
+            background: rgba(10, 17, 40, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--primary);
             position: sticky;
             top: 0;
             z-index: 1000;
-            border-bottom: 3px solid #ef476f;
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ef476f 0%, #118ab2 100%);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            font-weight: bold;
-            box-shadow: 0 8px 20px rgba(239, 71, 111, 0.4);
-            border: 3px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .site-title {
-            font-size: 2.5em;
-            font-weight: bold;
-            background: linear-gradient(90deg, #ffffff 0%, #118ab2 50%, #ef476f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-        }
-
-        nav ul {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-size: 1.1em;
-            padding: 10px 20px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        nav a::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ef476f, #118ab2);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        nav a:hover::before {
-            width: 100%;
-        }
-
-        nav a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Hero Section */
-        .hero {
-            max-width: 1400px;
-            margin: 60px auto;
-            padding: 0 40px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 4em;
-            margin-bottom: 20px;
-            background: linear-gradient(90deg, #ffffff 0%, #118ab2 50%, #ef476f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: glow 3s ease-in-out infinite;
-        }
-
-        @keyframes glow {
-            0%, 100% { filter: drop-shadow(0 0 20px rgba(17, 138, 178, 0.5)); }
-            50% { filter: drop-shadow(0 0 40px rgba(239, 71, 111, 0.8)); }
-        }
-
-        .hero p {
-            font-size: 1.3em;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 40px;
-        }
-
-        /* Games Grid */
-        .games-section {
-            max-width: 1400px;
-            margin: 60px auto;
-            padding: 0 40px;
-        }
-
-        .section-title {
-            font-size: 2.5em;
-            margin-bottom: 40px;
-            text-align: center;
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 4px;
-            background: linear-gradient(90deg, #ef476f, #118ab2, #ffffff);
-            border-radius: 2px;
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 40px;
-            margin-top: 60px;
         }
 
         .game-card {
-            background: linear-gradient(145deg, rgba(17, 138, 178, 0.1), rgba(239, 71, 111, 0.1));
-            border-radius: 20px;
-            padding: 30px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s ease;
-            position: relative;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
             overflow: hidden;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .game-card:hover::before {
-            left: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         .game-card:hover {
-            transform: translateY(-10px);
-            border-color: #ef476f;
-            box-shadow: 0 15px 50px rgba(239, 71, 111, 0.4);
+            border-color: var(--primary);
+            transform: translateY(-8px);
+            box-shadow: 0 0 25px var(--border-glow);
         }
 
-        .game-placeholder {
-            width: 100%;
-            height: 250px;
-            background: linear-gradient(135deg, #001f54 0%, #034078 100%);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
+        .game-card.is-favorite {
+            border: 2px solid var(--accent);
         }
 
-        .game-placeholder::after {
-            content: '🎮';
-            font-size: 4em;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .game-title {
-            font-size: 1.8em;
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-
-        .game-description {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .play-button {
-            background: linear-gradient(135deg, #ef476f 0%, #118ab2 100%);
+        .btn-play {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
+            padding: 12px 24px;
             border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(239, 71, 111, 0.4);
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.75rem;
+            border: none;
+            cursor: pointer;
         }
 
-        .play-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 30px rgba(239, 71, 111, 0.6);
+        .fav-star {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            filter: drop-shadow(0 0 5px black);
+            z-index: 50;
+            color: rgba(255,255,255,0.2);
         }
 
-        /* Footer */
-        footer {
-            background: rgba(0, 31, 84, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 40px 0;
-            margin-top: 100px;
-            border-top: 3px solid #ef476f;
+        .fav-star.active {
+            color: var(--accent);
+            transform: scale(1.2);
+            filter: drop-shadow(0 0 8px var(--accent));
         }
 
-        .footer-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 40px;
-            text-align: center;
+        /* Progress Bar */
+        .xp-bar-container {
+            height: 14px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .footer-content p {
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 20px;
+        #xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.8s ease-out;
         }
 
-        .social-links {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .social-link {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #ef476f 0%, #118ab2 100%);
-            border-radius: 50%;
-            display: flex;
+        /* Modal Profile */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
             align-items: center;
             justify-content: center;
-            color: white;
-            text-decoration: none;
-            font-size: 1.5em;
-            transition: all 0.3s ease;
         }
 
-        .social-link:hover {
-            transform: scale(1.2) rotate(360deg);
+        /* Theme-specific Overrides */
+        .theme-retro .game-card { border-radius: 0; border: 4px solid var(--primary); }
+        .theme-retro .btn-play { border-radius: 0; border: 2px solid white; }
+        
+        .theme-modern .game-card { border-radius: 4px; border: 1px solid rgba(0, 242, 255, 0.3); }
+        .theme-modern .btn-play { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); border-radius: 0; }
+
+        /* Upload Input style */
+        .upload-label {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            border: 1px dashed var(--primary);
+            margin-top: 10px;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            nav ul {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-
-            .hero h1 {
-                font-size: 2.5em;
-            }
-
-            .games-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .site-title {
-                font-size: 1.8em;
-            }
-        }
+        .upload-label:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body>
-    <header>
-        <div class="header-content">
-            <div class="logo-container">
-                <div class="logo-placeholder">
-                    <!-- Votre logo ici -->
-                    🎮
-                </div>
-                <div class="site-title">ARCADE GAMING</div>
+<body id="main-body" class="theme-original">
+
+    <!-- CANVAS DYNAMIQUE -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- HEADER -->
+    <header class="glass-header py-4 px-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="text-3xl animate-bounce">🎮</div>
+                <h1 class="text-xl font-bold tracking-tighter uppercase hidden sm:block">
+                    Arcade <span class="text-pink-500">Hub</span>
+                </h1>
             </div>
-            <nav>
-                <ul>
-                    <li><a href="#accueil">Accueil</a></li>
-                    <li><a href="#jeux">Jeux</a></li>
-                    <li><a href="#classement">Classement</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
+
+            <div class="flex items-center gap-4 md:gap-8">
+                <!-- Selecteur de Thème -->
+                <div class="flex bg-black/50 p-1 rounded-full border border-white/10 text-[10px] mr-4">
+                    <button onclick="changeTheme('original')" id="btn-t-original" class="px-3 py-1 rounded-full opacity-100 bg-pink-500">ORIGINAL</button>
+                    <button onclick="changeTheme('retro')" id="btn-t-retro" class="px-3 py-1 rounded-full opacity-50">RÉTRO</button>
+                    <button onclick="changeTheme('modern')" id="btn-t-modern" class="px-3 py-1 rounded-full opacity-50">FUTUR</button>
+                </div>
+
+                <!-- Profil Nav -->
+                <div class="flex items-center gap-3 bg-white/5 py-1 px-4 rounded-full border border-white/10 cursor-pointer hover:bg-white/10" onclick="toggleProfileModal()">
+                    <img id="header-avatar" src="" class="w-10 h-10 rounded-full border-2 border-pink-500 bg-slate-800 object-cover" alt="Avatar">
+                    <div class="text-left hidden md:block">
+                        <div id="header-pseudo" class="text-sm font-bold leading-none">Joueur</div>
+                        <div class="text-[10px] opacity-60">NIVEAU <span id="header-level">1</span></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <section class="hero" id="accueil">
-        <h1>Bienvenue dans l'Arcade</h1>
-        <p>Découvrez une collection de jeux classiques revisités avec style</p>
-    </section>
-
-    <section class="games-section" id="jeux">
-        <h2 class="section-title">Nos Jeux</h2>
-        <div class="games-grid">
-            <!-- Carte de jeu 1 -->
-            <div class="game-card">
-                <div class="img">
-                    <img src="Pong.png" alt="Pong" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+    <main class="max-w-7xl mx-auto px-6 pt-10 pb-20">
+        
+        <!-- DASHBOARD STATS -->
+        <section class="mb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-black/40 border border-white/10 rounded-3xl p-8 backdrop-blur-lg">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="relative group">
+                        <img id="stat-avatar" src="" class="w-28 h-28 rounded-3xl border-4 border-white/10 shadow-2xl bg-slate-800 object-cover" alt="Avatar">
+                        <div class="absolute -bottom-3 -right-3 bg-pink-500 text-white px-4 py-1 rounded-xl font-bold shadow-xl text-lg">
+                            Lvl <span id="stat-level">1</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 w-full">
+                        <div class="flex justify-between mb-3 text-xs font-bold uppercase tracking-widest text-pink-400">
+                            <span>Progression XP</span>
+                            <span id="xp-text">0 / 100</span>
+                        </div>
+                        <div class="xp-bar-container">
+                            <div id="xp-bar-fill"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mt-8 text-center">
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <div id="stat-games" class="text-2xl font-bold text-white">0</div>
+                                <div class="text-[10px] opacity-40 uppercase font-bold">Jeux Joués</div>
+                            </div>
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <div id="stat-time" class="text-2xl font-bold text-white">0m</div>
+                                <div class="text-[10px] opacity-40 uppercase font-bold">Temps de Vol</div>
+                            </div>
+                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                <div id="stat-favs" class="text-2xl font-bold text-white">0</div>
+                                <div class="text-[10px] opacity-40 uppercase font-bold">Favoris</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="game-title">Pong Moderne</h3>
-                <p class="game-description">Le tennis légendaire revisité : graphismes fluides, affrontez l'IA ou vos amis !</p>
-                <button onclick="window.location.href='Jeu pong.html'" class="play-button">Jouer</button>
+            </div>
+            
+            <div class="bg-gradient-to-br from-pink-600/20 to-blue-600/20 border border-white/10 rounded-3xl p-8 flex flex-col justify-center items-center text-center">
+                <div class="text-5xl mb-4">⭐</div>
+                <h3 class="text-xl font-bold mb-2">Rang actuel : <span id="rank-title" class="text-pink-400">Recrue</span></h3>
+                <p class="text-sm opacity-60">Continuez à jouer pour débloquer le rang de Maître de l'Arcade !</p>
+            </div>
+        </section>
+
+        <!-- SECTION FAVORIS -->
+        <section id="fav-section" class="mb-16 hidden">
+            <h2 class="text-2xl font-bold mb-8 flex items-center gap-3">
+                <span class="text-yellow-400 text-3xl">★</span> VOS FAVORIS
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="fav-grid"></div>
+        </section>
+
+        <!-- CATALOGUE COMPLET -->
+        <section id="jeux">
+            <h2 class="text-2xl font-bold mb-8 uppercase tracking-tighter">Catalogue des Missions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="main-grid">
+                
+                <div class="game-card group" data-id="pong-mod">
+                    <span class="fav-star" onclick="toggleFavorite('pong-mod')">❤</span>
+                    <img src="Pong.png" class="w-full h-52 object-cover" alt="Pong Moderne">
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="text-xl font-bold mb-2">Pong Moderne</h3>
+                        <p class="text-xs opacity-60 mb-6 flex-1">Le tennis légendaire revisité : graphismes fluides, affrontez l'IA ou vos amis !</p>
+                        <button onclick="launchGame('pong-mod', 'Jeu pong.html')" class="btn-play w-full">Lancer</button>
+                    </div>
+                </div>
+
+                <div class="game-card group" data-id="asteroids">
+                    <span class="fav-star" onclick="toggleFavorite('asteroids')">❤</span>
+                    <img src="Asteroid.jpg" class="w-full h-52 object-cover" alt="Asteroids">
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="text-xl font-bold mb-2">Asteroids</h3>
+                        <p class="text-xs opacity-60 mb-6 flex-1">Détruisez les astéroïdes, évitez les collisions et survivez dans l'espace profond !</p>
+                        <button onclick="launchGame('asteroids', 'Asteroid.html')" class="btn-play w-full">Lancer</button>
+                    </div>
+                </div>
+
+                <div class="game-card group" data-id="pong-classic">
+                    <span class="fav-star" onclick="toggleFavorite('pong-classic')">❤</span>
+                    <img src="Pong Classique.png" class="w-full h-52 object-cover" alt="Pong Classique">
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="text-xl font-bold mb-2">Pong Classique</h3>
+                        <p class="text-xs opacity-60 mb-6 flex-1">Le jeu de tennis originel revisité avec des graphismes ultra-propres.</p>
+                        <button onclick="launchGame('pong-classic', 'Jeu de pong classique.html')" class="btn-play w-full">Lancer</button>
+                    </div>
+                </div>
+
+                <div class="game-card group" data-id="snake">
+                    <span class="fav-star" onclick="toggleFavorite('snake')">❤</span>
+                    <img src="snake.jpg" class="w-full h-52 object-cover" alt="Snake">
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="text-xl font-bold mb-2">Snake</h3>
+                        <p class="text-xs opacity-60 mb-6 flex-1">Glissez, mangez des pommes et grandissez... sans jamais vous mordre la queue !</p>
+                        <button onclick="launchGame('snake', 'Jeu snake.html')" class="btn-play w-full">Lancer</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL CONFIGURATION PROFIL -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="bg-slate-900 p-8 rounded-[2rem] border-2 border-pink-500 w-full max-w-md mx-4 shadow-2xl text-center">
+            <h2 class="text-2xl font-bold mb-6 tracking-tight uppercase">Édition du Pilote</h2>
+            
+            <div class="mb-4">
+                <label class="block text-[10px] uppercase font-black opacity-40 mb-2">Choisir un Avatar</label>
+                <div class="flex justify-center gap-3 mb-4">
+                    <img onclick="selectAvatar('Lucky')" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Lucky" class="avatar-choice w-12 h-12 rounded-xl cursor-pointer bg-slate-800 border-2 border-transparent">
+                    <img onclick="selectAvatar('Gamer')" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Gamer" class="avatar-choice w-12 h-12 rounded-xl cursor-pointer bg-slate-800 border-2 border-transparent">
+                    <img onclick="selectAvatar('Ninja')" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Ninja" class="avatar-choice w-12 h-12 rounded-xl cursor-pointer bg-slate-800 border-2 border-transparent">
+                    <img onclick="selectAvatar('Robot')" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Robot" class="avatar-choice w-12 h-12 rounded-xl cursor-pointer bg-slate-800 border-2 border-transparent">
+                </div>
+                
+                <p class="text-xs opacity-50 my-2">-- OU --</p>
+                
+                <label for="avatar-upload" class="upload-label">
+                    📤 Importer une image (PC)
+                </label>
+                <input type="file" id="avatar-upload" hidden accept="image/*" onchange="uploadAvatar(event)">
             </div>
 
-            <!-- Carte de jeu 2 -->
-            <div class="game-card">
-                <div class="img">
-                    <img src="Pong retro.png" alt="Pong" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
-                </div>
-                <h3 class="game-title">Asteroids</h3>
-                <p class="game-description">Détruisez les astéroïdes, évitez les collisions !</p>
-                <button onclick="window.location.href='Asteroid.html'" class="play-button">Jouer</button>
+            <div class="mb-8 text-left">
+                <label class="block text-[10px] uppercase font-black opacity-40 mb-2 ml-1">Identifiant Pilote</label>
+                <input type="text" id="input-pseudo" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-pink-500 text-white font-bold" placeholder="Pseudo...">
             </div>
 
-            <!-- Carte de jeu 3 -->
-            <div class="game-card">
-                <div class="img">
-                    <img src="Pong Classique.png" alt="Pong" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
-                </div>
-                <h3 class="game-title">Pong Classique</h3>
-                <p class="game-description">Le jeu de tennis légendaire revisité avec des graphismes très propre. Affrontez votre ami et essayez de le battre. Vous avez la possibilité d'ajuster les paramètres.</p>
-                 <button onclick="window.location.href='Jeu de pong classique.html'" class="play-button">Jouer</button>
-            </div>
-
-            <!-- Carte de jeu 4 -->
-            <div class="game-card">
-                <div class="img">
-                    <img src="snake.jpg" alt="Pong" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
-                </div>
-                <h3 class="game-title"> Snake</h3>
-                <p class="game-description">Glissez, mangez des pommes, grandissez... sans vous mordre la queue ! </p>
-                <button onclick="window.location.href='Jeu snake.html'" class="play-button">Jouer</button>
-            </div>
-
-            <!-- Carte de jeu 5 -->
-            <div class="game-card">
-                <div class="game-placeholder">
-                    <!-- Emplacement pour votre jeu 5 -->
-                </div>
-                <h3 class="game-title">Brick Breaker</h3>
-                <p class="game-description">Cassez tous les briques avec votre balle rebondissante dans ce classique indémodable.</p>
-                <button class="play-button">Jouer</button>
-            </div>
-
-            <!-- Carte de jeu 6 -->
-            <div class="game-card">
-                <div class="game-placeholder">
-                    <!-- Emplacement pour votre jeu 6 -->
-                </div>
-                <h3 class="game-title">Pac-Man</h3>
-                <p class="game-description">Mangez toutes les pac-gommes tout en échappant aux fantômes colorés dans ce labyrinthe mythique.</p>
-                <button class="play-button">Jouer</button>
+            <div class="flex gap-4">
+                <button onclick="saveProfile()" class="flex-1 bg-pink-500 py-4 rounded-2xl font-bold text-white shadow-lg">VALIDER</button>
+                <button onclick="toggleProfileModal()" class="px-6 py-4 rounded-2xl font-bold opacity-60 hover:opacity-100">ANNULER</button>
             </div>
         </div>
-    </section>
-
-    <footer>
-        <div class="footer-content">
-            <p>&copy; 2025 Arcade Gaming - Tous droits réservés</p>
-            <p>Développé avec passion pour les gamers</p>
-            <div class="social-links">
-                <a href="#" class="social-link">📘</a>
-                <a href="#" class="social-link">🐦</a>
-                <a href="#" class="social-link">📷</a>
-                <a href="#" class="social-link">🎮</a>
-            </div>
-        </div>
-    </footer>
+    </div>
 
     <script>
-        // Animation au scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
+        /**
+         * --- ÉTAT DU HUB ---
+         */
+        const STORAGE_KEY = 'arcade_master_profile_v3';
+        let hubState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+            pseudo: "Pilote_7",
+            avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Lucky",
+            xp: 0,
+            level: 1,
+            gamesPlayedCount: 0,
+            playTimeMinutes: 0,
+            favorites: [],
+            theme: "original"
         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
+        // --- CANVAS DYNAMIQUE ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
 
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(50px)';
-            card.style.transition = 'all 0.6s ease';
-            observer.observe(card);
-        });
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            const count = hubState.theme === 'retro' ? 50 : 100;
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speedX: (Math.random() - 0.5) * 0.6,
+                    speedY: (Math.random() - 0.5) * 0.6,
+                    color: hubState.theme === 'retro' ? '#00ff00' : 
+                           hubState.theme === 'modern' ? '#00f2ff' : '#ffffff'
+                });
+            }
+        }
 
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, idx) => {
+                p.x += p.speedX; p.y += p.speedY;
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                
+                ctx.fillStyle = p.color;
+                if (hubState.theme === 'retro') {
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillRect(p.x, p.y, 6, 6);
+                } else if (hubState.theme === 'modern') {
+                    ctx.globalAlpha = 0.7;
+                    particles.forEach((p2, idx2) => {
+                        if (idx === idx2) return;
+                        const d = Math.hypot(p.x - p2.x, p.y - p2.y);
+                        if (d < 100) {
+                            ctx.strokeStyle = `rgba(0, 242, 255, ${1 - d/100})`;
+                            ctx.lineWidth = 0.4;
+                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                        }
                     });
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
                 }
             });
-        });
+            requestAnimationFrame(animateCanvas);
+        }
+
+        /**
+         * --- SYSTÈME DE PROFIL & IMAGE ---
+         */
+        function toggleProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            document.getElementById('input-pseudo').value = hubState.pseudo;
+        }
+
+        function selectAvatar(seed) {
+            hubState.avatar = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed}`;
+            updateAvatarVisuals();
+        }
+
+        function uploadAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    hubState.avatar = e.target.result; // Sauvegarde le base64
+                    updateAvatarVisuals();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateAvatarVisuals() {
+            document.querySelectorAll('.avatar-choice').forEach(img => {
+                const isSelected = img.src === hubState.avatar || img.src.includes(hubState.avatar.split('=')[1]);
+                img.style.borderColor = isSelected ? 'var(--primary)' : 'transparent';
+                img.style.background = isSelected ? 'rgba(239, 71, 111, 0.2)' : 'rgba(255,255,255,0.05)';
+            });
+        }
+
+        function saveProfile() {
+            const pseudo = document.getElementById('input-pseudo').value.trim();
+            if (pseudo) hubState.pseudo = pseudo;
+            saveState(); updateUI(); toggleProfileModal();
+        }
+
+        function toggleFavorite(id) {
+            const idx = hubState.favorites.indexOf(id);
+            if (idx > -1) hubState.favorites.splice(idx, 1);
+            else { hubState.favorites.push(id); addXP(5); }
+            saveState(); updateUI();
+        }
+
+        function addXP(amount) {
+            hubState.xp += amount;
+            const newLevel = Math.floor(hubState.xp / 100) + 1;
+            if (newLevel > hubState.level) hubState.level = newLevel;
+            saveState(); updateUI();
+        }
+
+        function launchGame(id, url) {
+            hubState.gamesPlayedCount++;
+            addXP(20);
+            saveState();
+            window.location.href = url;
+        }
+
+        /**
+         * --- MISE À JOUR UI & THÈMES ---
+         */
+        function changeTheme(themeName) {
+            hubState.theme = themeName;
+            const body = document.getElementById('main-body');
+            body.className = 'theme-' + themeName;
+            
+            // Mise à jour des boutons de thème
+            ['original', 'retro', 'modern'].forEach(t => {
+                const btn = document.getElementById('btn-t-' + t);
+                btn.style.opacity = themeName === t ? "1" : "0.5";
+                btn.style.background = themeName === t ? "var(--primary)" : "transparent";
+            });
+
+            saveState(); initCanvas();
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(hubState));
+        }
+
+        function updateUI() {
+            document.getElementById('header-avatar').src = hubState.avatar;
+            document.getElementById('stat-avatar').src = hubState.avatar;
+            document.getElementById('header-pseudo').textContent = hubState.pseudo;
+            document.getElementById('header-level').textContent = hubState.level;
+            document.getElementById('stat-level').textContent = hubState.level;
+            document.getElementById('stat-games').textContent = hubState.gamesPlayedCount;
+            document.getElementById('stat-time').textContent = hubState.playTimeMinutes + 'm';
+            document.getElementById('stat-favs').textContent = hubState.favorites.length;
+            
+            const xpInLevel = hubState.xp % 100;
+            document.getElementById('xp-bar-fill').style.width = xpInLevel + '%';
+            document.getElementById('xp-text').textContent = `${xpInLevel} / 100`;
+
+            const ranks = ["Recrue", "Pilote", "As", "Chasseur", "Vétéran", "Légende"];
+            const rIdx = Math.min(Math.floor(hubState.level / 3), ranks.length - 1);
+            document.getElementById('rank-title').textContent = ranks[rIdx];
+
+            // Favoris
+            const favSection = document.getElementById('fav-section');
+            const favGrid = document.getElementById('fav-grid');
+            favGrid.innerHTML = '';
+
+            document.querySelectorAll('#main-grid .game-card').forEach(card => {
+                const id = card.dataset.id;
+                const isFav = hubState.favorites.includes(id);
+                card.querySelector('.fav-star').classList.toggle('active', isFav);
+                card.classList.toggle('is-favorite', isFav);
+
+                if (isFav) {
+                    const clone = card.cloneNode(true);
+                    clone.querySelector('.fav-star').onclick = () => toggleFavorite(id);
+                    const btn = clone.querySelector('.btn-play');
+                    if(btn) {
+                        const originalOnclick = card.querySelector('.btn-play').getAttribute('onclick');
+                        btn.setAttribute('onclick', originalOnclick);
+                    }
+                    favGrid.appendChild(clone);
+                }
+            });
+            favSection.classList.toggle('hidden', hubState.favorites.length === 0);
+        }
+
+        // Timer XP passif
+        setInterval(() => { hubState.playTimeMinutes += 1; addXP(2); }, 60000);
+
+        window.addEventListener('resize', initCanvas);
+        window.onload = () => {
+            changeTheme(hubState.theme);
+            initCanvas(); animateCanvas(); updateUI();
+        };
     </script>
 </body>
-
 </html>
 
 
