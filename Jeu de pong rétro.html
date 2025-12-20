@@ -2,370 +2,541 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong Retro</title>
-    <!-- Chargement de Tailwind CSS via CDN pour un style moderne et propre -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asteroids - Neo Space Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
     <style>
-        /* Styles personnalisés pour le jeu */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
         body {
-            /* Assure que l'arrière-plan du corps s'étend et le centrage du contenu Tailwind */
-            height: 100vh;
+            background-color: #020205;
+            color: #e0e0e0;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #1f2937; /* Gris foncé - slate-800 */
+            height: 100vh;
+            touch-action: none;
         }
-        #pongCanvas {
-            box-shadow: 0 0 30px rgba(0, 255, 128, 0.4); /* Ombre verte vive pour le look propre */
+
+        #game-container {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            border: 2px solid #1a1a2e;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.2);
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: auto;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #ui-overlay.hidden {
+            display: none !important;
+        }
+
+        .neon-btn {
+            background: rgba(0, 150, 255, 0.1);
+            color: #00f2ff;
+            border: 2px solid #00f2ff;
+            padding: 18px 50px;
             border-radius: 8px;
-            /* Le fond noir du terrain est géré par JavaScript (ctx.fillRect) */
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
         }
-        /* Style pour les messages de jeu */
-        #messageBox {
-            transition: opacity 0.3s ease;
+
+        .neon-btn:hover {
+            background: #00f2ff;
+            color: #000;
+            box-shadow: 0 0 40px #00f2ff;
+            transform: scale(1.05);
+        }
+
+        /* Contrôles Mobiles Améliorés */
+        .mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .btn-touch {
+            width: 75px;
+            height: 75px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 242, 255, 0.3);
+            border-radius: 15px;
+            color: #00f2ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.1s;
+            backdrop-filter: blur(4px);
+            touch-action: none;
+        }
+
+        .btn-touch.active {
+            background: rgba(0, 242, 255, 0.4);
+            border-color: #fff;
+            transform: scale(0.9);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .ui-score {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            pointer-events: none;
+            z-index: 45;
         }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div id="game-container" class="flex flex-col items-center justify-center p-6 bg-gray-800 rounded-xl shadow-2xl">
-        <h1 class="text-xl md:text-2xl font-bold mb-4 text-green-400">
-            Jeu de Pong Rétro
-        </h1>
-        <p class="text-sm text-gray-400 mb-6 text-center">
-            Joueur 1 (Gauche) : <span class="text-yellow-400 font-semibold">Z</span> (Haut) / <span class="text-yellow-400 font-semibold">S</span> (Bas)
-            <span class="mx-4">|</span>
-            Joueur 2 (Droite) : <span class="text-yellow-400 font-semibold">↑</span> (Haut) / <span class="text-yellow-400 font-semibold">↓</span> (Bas)
-        </p>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
         
-        <!-- Canvas de jeu -->
-        <canvas id="pongCanvas" width="600" height="400" class="bg-black"></canvas>
-        
-        <!-- Zone de message (remplace l'alerte) -->
-        <div id="messageBox" class="mt-6 p-3 bg-red-600 text-white rounded-lg font-bold text-center opacity-0 pointer-events-none">
-            <!-- Le message de victoire apparaît ici -->
+        <div class="ui-score">
+            <div id="score-text" class="text-3xl font-bold text-blue-400">0</div>
+            <div class="text-[10px] text-blue-900 uppercase tracking-[0.3em]">Points d'Énergie</div>
+        </div>
+
+        <!-- Écran d'accueil -->
+        <div id="ui-overlay">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-2 tracking-tighter">ASTEROIDS</h1>
+                <p class="text-blue-500 text-xs tracking-[0.6em] uppercase">Neo-Tokyo Station</p>
+            </div>
+            
+            <button class="neon-btn" onclick="startGame()">Démarrer</button>
+
+            <div class="mt-16 opacity-40 text-[9px] text-gray-400 uppercase tracking-widest text-center">
+                Clavier: ZQSD + ESPACE | Mobile: Tactile
+            </div>
+        </div>
+
+        <!-- Contrôles Mobiles (Visibles sur écrans tactiles) -->
+        <div class="mobile-controls lg:hidden" id="mobile-ui">
+            <div class="control-group">
+                <div class="btn-touch" id="btn-left">←</div>
+                <div class="btn-touch" id="btn-right">→</div>
+            </div>
+            <div class="control-group">
+                <div class="btn-touch" id="btn-thrust">▲</div>
+                <div class="btn-touch" id="btn-fire" style="color: #ff0055; border-color: #ff005566;">⚡</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- Code JavaScript du jeu de Pong ---
+        /**
+         * --- MOTEUR AUDIO PROCÉDURAL ---
+         */
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            playShoot() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            },
+            playExplosion(isLarge = true) {
+                this.init();
+                const noise = this.ctx.createBufferSource();
+                const bufferSize = this.ctx.sampleRate * 0.3;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(isLarge ? 300 : 800, this.ctx.currentTime);
+                
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(isLarge ? 0.4 : 0.15, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+            }
+        };
 
-        // 1. Initialisation du Canvas et du Contexte
-        const canvas = document.getElementById('pongCanvas');
+        /**
+         * --- CONFIGURATION LOGIQUE ---
+         */
+        const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const messageBox = document.getElementById('messageBox');
+        const overlay = document.getElementById('ui-overlay');
+        const scoreEl = document.getElementById('score-text');
 
-        // Dimensions du jeu (correspondent aux attributs du canvas)
-        const game = {
-            width: canvas.width,
-            height: canvas.height,
-        };
+        const WORLD_W = 800;
+        const WORLD_H = 600;
 
-        // Constantes du jeu
-        const paddleWidth = 10;
-        const paddleHeight = 80; // Légèrement plus grand pour faciliter le jeu
-        const ballRadius = 6;
-        const winningScore = 5;
-
-        // Vitesse de base
-        const baseSpeed = 5;
-        const ballInitialSpeed = 4;
-        const speedIncrement = 0.5; // Augmentation progressive de la vitesse
-
-        // État des touches pressées
-        const keys = {
-            z: false,
-            s: false,
-            up: false,
-            down: false
-        };
-
-        // Objets du jeu
-        let player1 = {
-            x: 10,
-            y: game.height / 2 - paddleHeight / 2,
-            dy: 0,
-            speed: baseSpeed,
-            score: 0
-        };
-
-        let player2 = {
-            x: game.width - paddleWidth - 10,
-            y: game.height / 2 - paddleHeight / 2,
-            dy: 0,
-            speed: baseSpeed,
-            score: 0
-        };
-
-        let ball = {
-            x: game.width / 2,
-            y: game.height / 2,
-            dx: ballInitialSpeed,
-            dy: ballInitialSpeed * (Math.random() > 0.5 ? 1 : -1) * 0.75,
-            speed: ballInitialSpeed
-        };
-        
-        // MODIFICATION ICI: Le jeu commence en pause.
-        let gameActive = false;
-
-        // 2. Fonctions de Dessin
-        function drawRect(x, y, w, h, color) {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, w, h);
+        function resize() {
+            const scale = Math.min(window.innerWidth / WORLD_W, window.innerHeight / WORLD_H) * 0.98;
+            canvas.width = WORLD_W;
+            canvas.height = WORLD_H;
+            canvas.style.width = (WORLD_W * scale) + 'px';
+            canvas.style.height = (WORLD_H * scale) + 'px';
+            document.getElementById('game-container').style.width = (WORLD_W * scale) + 'px';
+            document.getElementById('game-container').style.height = (WORLD_H * scale) + 'px';
         }
 
-        function drawCircle(x, y, r, color) {
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(x, y, r, 0, Math.PI * 2, false);
-            ctx.closePath();
-            ctx.fill();
-        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        function drawNet() {
-            ctx.beginPath();
-            ctx.setLineDash([10, 10]); // Pointillés plus visibles
-            ctx.strokeStyle = "#4b5563"; // Gris clair
-            ctx.lineWidth = 4;
-            ctx.moveTo(game.width / 2, 0);
-            ctx.lineTo(game.width / 2, game.height);
-            ctx.stroke();
-            ctx.setLineDash([]); // Réinitialiser
-        }
+        // Paramètres de jeu
+        const SHIP_SIZE = 28;
+        const ROT_SPEED = 0.08;
+        const THRUST = 0.22;
+        const FRICTION = 0.985;
+        const BULLET_SPEED = 9;
 
-        function drawScore() {
-            ctx.fillStyle = "#FFF";
-            ctx.font = "40px sans-serif";
-            ctx.fillText(player1.score, game.width / 4 - 20, 50);
-            ctx.fillText(player2.score, game.width * 3 / 4, 50);
-        }
+        let score = 0;
+        let gameRunning = false;
+        let ship;
+        let bullets = [];
+        let asteroids = [];
+        let inputState = { left: false, right: false, thrust: false };
 
-        function drawWinner(text) {
-            ctx.fillStyle = "#0d9488"; // Couleur cyan pour le texte gagnant
-            
-            // Si les scores sont à zéro, afficher "PONG" pour le titre
-            const titleText = (player1.score === 0 && player2.score === 0) ? "PONG RÉTRO" : text;
-            
-            ctx.font = "48px sans-serif";
-            ctx.textAlign = 'center';
-            ctx.fillText(titleText, game.width / 2, game.height / 2 - 24);
-            ctx.font = "24px sans-serif";
-            
-            // Texte de l'instruction dynamique
-            const instructionText = (player1.score === 0 && player2.score === 0) 
-                                    ? "Appuyez sur ESPACE pour commencer" 
-                                    : "Appuyez sur ESPACE pour recommencer";
-            ctx.fillText(instructionText, game.width / 2, game.height / 2 + 24);
-            
-            ctx.textAlign = 'left'; // Réinitialiser l'alignement
-        }
-        
-        function showMessage(text, duration = 3000) {
-            messageBox.textContent = text;
-            messageBox.style.opacity = '1';
-            messageBox.classList.remove('bg-red-600');
-            messageBox.classList.add('bg-green-600');
-            
-            setTimeout(() => {
-                messageBox.style.opacity = '0';
-                messageBox.classList.remove('bg-green-600');
-                messageBox.classList.add('bg-red-600');
-            }, duration);
-        }
-
-        // 3. Logique du Jeu
-
-        function resetBall(direction) {
-            ball.x = game.width / 2;
-            ball.y = game.height / 2;
-            ball.speed = ballInitialSpeed;
-            
-            // Lancer la balle vers le joueur qui vient de marquer (inversé)
-            ball.dx = ball.speed * direction;
-            ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.75;
-        }
-
-        function update() {
-            if (!gameActive) return;
-
-            // Mouvement des raquettes
-            player1.y += player1.dy;
-            player2.y += player2.dy;
-
-            // Limiter aux bords
-            player1.y = Math.max(0, Math.min(game.height - paddleHeight, player1.y));
-            player2.y = Math.max(0, Math.min(game.height - paddleHeight, player2.y));
-
-            // Déplacement de la balle
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            // Collision avec les murs Haut/Bas
-            if (ball.y + ballRadius > game.height || ball.y - ballRadius < 0) {
-                ball.dy = -ball.dy;
+        class Ship {
+            constructor() {
+                this.pos = { x: WORLD_W / 2, y: WORLD_H / 2 };
+                this.vel = { x: 0, y: 0 };
+                this.angle = -Math.PI / 2;
+                this.radius = SHIP_SIZE / 2;
             }
 
-            // Collision avec les raquettes (simplifiée)
-            
-            // Collision avec Joueur 1 (Gauche)
-            if (ball.x - ballRadius <= player1.x + paddleWidth && 
-                ball.x - ballRadius >= player1.x && // S'assurer que la balle ne traverse pas complètement
-                ball.y + ballRadius >= player1.y && 
-                ball.y - ballRadius <= player1.y + paddleHeight) {
+            draw() {
+                ctx.save();
+                ctx.translate(this.pos.x, this.pos.y);
+                ctx.rotate(this.angle + Math.PI / 2);
                 
-                // Augmenter la vitesse et inverser direction
-                ball.speed += speedIncrement;
-                
-                let relativeIntersectY = (player1.y + (paddleHeight / 2)) - ball.y;
-                let normalizedRelativeIntersectionY = (relativeIntersectY / (paddleHeight / 2));
-                let bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 4);
+                // Effet de lueur du vaisseau
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00f2ff';
 
-                ball.dx = Math.abs(Math.cos(bounceAngle) * ball.speed);
-                ball.dy = -Math.sin(bounceAngle) * ball.speed;
-            }
-            
-            // Collision avec Joueur 2 (Droite)
-            if (ball.x + ballRadius >= player2.x && 
-                ball.x + ballRadius <= player2.x + paddleWidth && // S'assurer que la balle ne traverse pas complètement
-                ball.y + ballRadius >= player2.y && 
-                ball.y - ballRadius <= player2.y + paddleHeight) {
+                // Dessin du design du vaisseau
+                ctx.beginPath();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#fff';
                 
-                // Augmenter la vitesse et inverser direction
-                ball.speed += speedIncrement;
-                
-                let relativeIntersectY = (player2.y + (paddleHeight / 2)) - ball.y;
-                let normalizedRelativeIntersectionY = (relativeIntersectY / (paddleHeight / 2));
-                let bounceAngle = normalizedRelativeIntersectionY * (Math.PI / 4);
+                // Corps central
+                ctx.moveTo(0, -18);
+                ctx.lineTo(10, 10);
+                ctx.lineTo(0, 4);
+                ctx.lineTo(-10, 10);
+                ctx.closePath();
+                ctx.stroke();
 
-                ball.dx = -Math.abs(Math.cos(bounceAngle) * ball.speed);
-                ball.dy = -Math.sin(bounceAngle) * ball.speed;
-            }
-            
-            // Gestion des Points et Victoire
-            if (ball.x < 0) {
-                // Point pour Joueur 2
-                player2.score++;
-                if (player2.score >= winningScore) {
-                    gameActive = false;
-                    showMessage("Joueur 2 (Droite) GAGNE ! Appuyez sur ESPACE.", 50000);
-                } else {
-                    resetBall(-1); // Lance la balle vers la gauche (Joueur 1)
+                // Ailes
+                ctx.beginPath();
+                ctx.moveTo(8, 2);
+                ctx.lineTo(16, 12);
+                ctx.lineTo(8, 12);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(-8, 2);
+                ctx.lineTo(-16, 12);
+                ctx.lineTo(-8, 12);
+                ctx.stroke();
+
+                // Cockpit
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(0, 242, 255, 0.4)';
+                ctx.ellipse(0, -2, 4, 7, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Flamme moteur
+                if (inputState.thrust) {
+                    ctx.shadowColor = '#ff6600';
+                    ctx.beginPath();
+                    ctx.moveTo(-5, 12);
+                    ctx.lineTo(0, 12 + Math.random() * 20);
+                    ctx.lineTo(5, 12);
+                    ctx.strokeStyle = '#ff3300';
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(-3, 12);
+                    ctx.lineTo(0, 12 + Math.random() * 12);
+                    ctx.lineTo(3, 12);
+                    ctx.strokeStyle = '#ffd000';
+                    ctx.stroke();
                 }
-            } else if (ball.x > game.width) {
-                // Point pour Joueur 1
-                player1.score++;
-                if (player1.score >= winningScore) {
-                    gameActive = false;
-                    showMessage("Joueur 1 (Gauche) GAGNE ! Appuyez sur ESPACE.", 50000);
-                } else {
-                    resetBall(1); // Lance la balle vers la droite (Joueur 2)
+                ctx.restore();
+                ctx.shadowBlur = 0;
+            }
+
+            update() {
+                if (inputState.left) this.angle -= ROT_SPEED;
+                if (inputState.right) this.angle += ROT_SPEED;
+                if (inputState.thrust) {
+                    this.vel.x += Math.cos(this.angle) * THRUST;
+                    this.vel.y += Math.sin(this.angle) * THRUST;
                 }
+
+                this.vel.x *= FRICTION;
+                this.vel.y *= FRICTION;
+                this.pos.x += this.vel.x;
+                this.pos.y += this.vel.y;
+
+                if (this.pos.x < -20) this.pos.x = WORLD_W + 20;
+                if (this.pos.x > WORLD_W + 20) this.pos.x = -20;
+                if (this.pos.y < -20) this.pos.y = WORLD_H + 20;
+                if (this.pos.y > WORLD_H + 20) this.pos.y = -20;
             }
         }
-        
-        // Fonction pour recommencer la partie
-        function restartGame() {
-            player1.score = 0;
-            player2.score = 0;
-            player1.y = game.height / 2 - paddleHeight / 2;
-            player2.y = game.height / 2 - paddleHeight / 2;
-            ball.speed = ballInitialSpeed;
-            resetBall(Math.random() > 0.5 ? 1 : -1);
-            gameActive = true;
-            messageBox.style.opacity = '0';
+
+        class Asteroid {
+            constructor(pos, scale = 1.0) {
+                this.pos = pos || this.randomEdge();
+                this.radius = 25 * scale;
+                this.scale = scale;
+                this.angle = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.05;
+                const speed = (Math.random() * 1.8) + 0.6;
+                const dir = Math.random() * Math.PI * 2;
+                this.vel = { x: Math.cos(dir) * speed, y: Math.sin(dir) * speed };
+                
+                this.vertices = [];
+                const points = 10;
+                for(let i=0; i<points; i++) this.vertices.push(0.7 + Math.random() * 0.5);
+            }
+
+            randomEdge() {
+                const side = Math.floor(Math.random() * 4);
+                if (side === 0) return { x: Math.random() * WORLD_W, y: -60 };
+                if (side === 1) return { x: Math.random() * WORLD_W, y: WORLD_H + 60 };
+                if (side === 2) return { x: -60, y: Math.random() * WORLD_H };
+                return { x: WORLD_W + 60, y: Math.random() * WORLD_H };
+            }
+
+            update() {
+                this.pos.x += this.vel.x;
+                this.pos.y += this.vel.y;
+                this.angle += this.rotSpeed;
+                if (this.pos.x < -100) this.pos.x = WORLD_W + 100;
+                if (this.pos.x > WORLD_W + 100) this.pos.x = -100;
+                if (this.pos.y < -100) this.pos.y = WORLD_H + 100;
+                if (this.pos.y > WORLD_H + 100) this.pos.y = -100;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.pos.x, this.pos.y);
+                ctx.rotate(this.angle);
+                ctx.beginPath();
+                for(let i=0; i<this.vertices.length; i++) {
+                    const a = (i/this.vertices.length) * Math.PI * 2;
+                    const r = this.radius * this.vertices[i];
+                    if (i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+                    else ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = '#445577';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            }
         }
 
-        // 4. Boucle de Jeu
+        class Bullet {
+            constructor(x, y, angle) {
+                this.pos = { x, y };
+                this.vel = { x: Math.cos(angle) * BULLET_SPEED, y: Math.sin(angle) * BULLET_SPEED };
+                this.life = 55;
+            }
+            update() {
+                this.pos.x += this.vel.x;
+                this.pos.y += this.vel.y;
+                this.life--;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.pos.x, this.pos.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0055';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff0055';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        /**
+         * --- CORE LOOP ---
+         */
+
+        function startGame() {
+            AudioEngine.init();
+            score = 0;
+            scoreEl.innerText = score;
+            ship = new Ship();
+            bullets = [];
+            asteroids = [];
+            for(let i=0; i<5; i++) asteroids.push(new Asteroid());
+            
+            gameRunning = true;
+            overlay.classList.add('hidden');
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            AudioEngine.playExplosion(true);
+            overlay.classList.remove('hidden');
+            document.querySelector('h1').innerText = "PILOTE ÉJECTÉ";
+            document.querySelector('.neon-btn').innerText = "Ressayer";
+        }
+
         function loop() {
-            // Dessiner le fond noir (effacement)
-            drawRect(0, 0, game.width, game.height, "#000"); 
+            ctx.fillStyle = '#020205';
+            ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
-            if (gameActive) {
-                update();
-            } else {
-                // Détermine le texte du gagnant ou le texte d'introduction
-                let winnerText = player1.score > player2.score ? "Joueur 1 GAGNE" : "Joueur 2 GAGNE";
-                drawWinner(winnerText);
+            if (gameRunning) {
+                ship.update();
+                ship.draw();
+
+                for(let i = bullets.length - 1; i >= 0; i--) {
+                    bullets[i].update();
+                    bullets[i].draw();
+                    if(bullets[i].life <= 0) bullets.splice(i, 1);
+                }
+
+                for(let i = asteroids.length - 1; i >= 0; i--) {
+                    const a = asteroids[i];
+                    a.update();
+                    a.draw();
+
+                    // Collision Vaisseau
+                    const dShip = Math.hypot(ship.pos.x - a.pos.x, ship.pos.y - a.pos.y);
+                    if (dShip < a.radius + ship.radius * 0.6) gameOver();
+
+                    // Collision Balles
+                    for(let j = bullets.length - 1; j >= 0; j--) {
+                        const b = bullets[j];
+                        const d = Math.hypot(b.pos.x - a.pos.x, b.pos.y - a.pos.y);
+                        if (d < a.radius) {
+                            AudioEngine.playExplosion(a.scale > 0.5);
+                            bullets.splice(j, 1);
+                            if (a.scale > 0.4) {
+                                asteroids.push(new Asteroid({x: a.pos.x, y: a.pos.y}, a.scale * 0.5));
+                                asteroids.push(new Asteroid({x: a.pos.x, y: a.pos.y}, a.scale * 0.5));
+                            }
+                            asteroids.splice(i, 1);
+                            score += 100;
+                            scoreEl.innerText = score;
+                            break;
+                        }
+                    }
+                }
+                if (asteroids.length === 0) {
+                    for(let i=0; i<6; i++) asteroids.push(new Asteroid());
+                }
             }
-
-            // Dessiner les éléments
-            drawNet();
-            drawScore();
-            drawRect(player1.x, player1.y, paddleWidth, paddleHeight, "#00ff80"); // Raquette Joueur 1 (Vert)
-            drawRect(player2.x, player2.y, paddleWidth, paddleHeight, "#00ff80"); // Raquette Joueur 2 (Vert)
-            drawCircle(ball.x, ball.y, ballRadius, "#FFF"); // Balle Blanche
-
             requestAnimationFrame(loop);
         }
 
-        // 5. Gestion des Contrôles (Clavier)
-        document.addEventListener('keydown', (e) => {
-            switch (e.key.toLowerCase()) {
-                case 'z': keys.z = true; break;
-                case 's': keys.s = true; break;
-                case 'arrowup': keys.up = true; break;
-                case 'arrowdown': keys.down = true; break;
-                case ' ': // Touche Espace pour commencer/recommencer
-                    if (!gameActive) {
-                        e.preventDefault(); // Empêcher le scroll
-                        restartGame();
-                    }
-                    break;
+        /**
+         * --- SYSTÈME D'ENTRÉES MODERNE (CLAVIER + TACTILE) ---
+         */
+        const handleKeyDown = (key) => {
+            if (!gameRunning) return;
+            if (key === 'KeyW' || key === 'ArrowUp') inputState.thrust = true;
+            if (key === 'KeyQ' || key === 'ArrowLeft') inputState.left = true;
+            if (key === 'KeyD' || key === 'ArrowRight') inputState.right = true;
+            if (key === 'Space') {
+                bullets.push(new Bullet(ship.pos.x, ship.pos.y, ship.angle));
+                AudioEngine.playShoot();
             }
-            
-            // Mettre à jour la direction des raquettes en fonction de l'état des touches
-            if (keys.z || keys.s) {
-                player1.dy = keys.z ? -player1.speed : player1.speed;
-            } else {
-                player1.dy = 0;
-            }
+        };
 
-            if (keys.up || keys.down) {
-                player2.dy = keys.up ? -player2.speed : player2.speed;
-            } else {
-                player2.dy = 0;
-            }
-        });
+        const handleKeyUp = (key) => {
+            if (key === 'KeyW' || key === 'ArrowUp') inputState.thrust = false;
+            if (key === 'KeyQ' || key === 'ArrowLeft') inputState.left = false;
+            if (key === 'KeyD' || key === 'ArrowRight') inputState.right = false;
+        };
 
-        document.addEventListener('keyup', (e) => {
-            switch (e.key.toLowerCase()) {
-                case 'z': keys.z = false; break;
-                case 's': keys.s = false; break;
-                case 'arrowup': keys.up = false; break;
-                case 'arrowdown': keys.down = false; break;
-            }
-            
-            // Mettre à jour la direction des raquettes
-            if (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 's') {
-                 if (keys.z) player1.dy = -player1.speed;
-                 else if (keys.s) player1.dy = player1.speed;
-                 else player1.dy = 0;
-            }
+        window.addEventListener('keydown', e => handleKeyDown(e.code));
+        window.addEventListener('keyup', e => handleKeyUp(e.code));
 
-            if (e.key.toLowerCase() === 'arrowup' || e.key.toLowerCase() === 'arrowdown') {
-                if (keys.up) player2.dy = -player2.speed;
-                else if (keys.down) player2.dy = player2.speed;
-                else player2.dy = 0;
-            }
-        });
+        // Gestion Tactile avec PointerEvents (Plus fiable que touchstart/end)
+        const setupBtn = (id, actionStart, actionEnd) => {
+            const el = document.getElementById(id);
+            el.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                el.classList.add('active');
+                actionStart();
+            });
+            const end = (e) => {
+                e.preventDefault();
+                el.classList.remove('active');
+                actionEnd();
+            };
+            el.addEventListener('pointerup', end);
+            el.addEventListener('pointerleave', end);
+            el.addEventListener('pointercancel', end);
+        };
 
-        // Démarrer la boucle de jeu au chargement de la fenêtre
-        window.onload = function() {
-            loop();
-        }
+        setupBtn('btn-left', () => inputState.left = true, () => inputState.left = false);
+        setupBtn('btn-right', () => inputState.right = true, () => inputState.right = false);
+        setupBtn('btn-thrust', () => inputState.thrust = true, () => inputState.thrust = false);
+        setupBtn('btn-fire', () => {
+            if (gameRunning) {
+                bullets.push(new Bullet(ship.pos.x, ship.pos.y, ship.angle));
+                AudioEngine.playShoot();
+            }
+        }, () => {});
+
+        loop();
     </script>
 </body>
 </html>
