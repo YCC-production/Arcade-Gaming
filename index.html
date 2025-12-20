@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
             --font-main: 'Inter', sans-serif;
             --card-bg: rgba(15, 23, 42, 0.7);
             --border-glow: rgba(239, 71, 111, 0.3);
-            /* Couleurs du style original */
+            /* Couleurs du style original restaurées */
             --original-bg: linear-gradient(135deg, #0a1128 0%, #001f54 50%, #034078 100%);
         }
 
@@ -87,6 +87,16 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            height: 100%;
+        }
+
+        /* Ajustement des images de jeux pour un placement parfait */
+        .game-card img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .game-card:hover {
@@ -109,6 +119,8 @@
             font-size: 0.75rem;
             border: none;
             cursor: pointer;
+            width: 100%;
+            margin-top: auto;
         }
 
         .fav-star {
@@ -119,7 +131,8 @@
             font-size: 1.5rem;
             filter: drop-shadow(0 0 5px black);
             z-index: 50;
-            color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.4);
+            user-select: none;
         }
 
         .fav-star.active {
@@ -159,6 +172,7 @@
         /* Theme-specific Overrides */
         .theme-retro .game-card { border-radius: 0; border: 4px solid var(--primary); }
         .theme-retro .btn-play { border-radius: 0; border: 2px solid white; }
+        .theme-retro .game-card img { border-radius: 0; }
         
         .theme-modern .game-card { border-radius: 4px; border: 1px solid rgba(0, 242, 255, 0.3); }
         .theme-modern .btn-play { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); border-radius: 0; }
@@ -175,6 +189,14 @@
             margin-top: 10px;
         }
         .upload-label:hover { background: rgba(255, 255, 255, 0.2); }
+
+        /* Avatar styles for perfect placement */
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
     </style>
 </head>
 <body id="main-body" class="theme-original">
@@ -202,7 +224,9 @@
 
                 <!-- Profil Nav -->
                 <div class="flex items-center gap-3 bg-white/5 py-1 px-4 rounded-full border border-white/10 cursor-pointer hover:bg-white/10" onclick="toggleProfileModal()">
-                    <img id="header-avatar" src="" class="w-10 h-10 rounded-full border-2 border-pink-500 bg-slate-800 object-cover" alt="Avatar">
+                    <div class="w-10 h-10 rounded-full border-2 border-pink-500 bg-slate-800 overflow-hidden">
+                        <img id="header-avatar" src="" class="avatar-img" alt="Avatar">
+                    </div>
                     <div class="text-left hidden md:block">
                         <div id="header-pseudo" class="text-sm font-bold leading-none">Joueur</div>
                         <div class="text-[10px] opacity-60">NIVEAU <span id="header-level">1</span></div>
@@ -219,7 +243,9 @@
             <div class="lg:col-span-2 bg-black/40 border border-white/10 rounded-3xl p-8 backdrop-blur-lg">
                 <div class="flex flex-col md:flex-row items-center gap-8">
                     <div class="relative group">
-                        <img id="stat-avatar" src="" class="w-28 h-28 rounded-3xl border-4 border-white/10 shadow-2xl bg-slate-800 object-cover" alt="Avatar">
+                        <div class="w-28 h-28 rounded-3xl border-4 border-white/10 shadow-2xl bg-slate-800 overflow-hidden">
+                            <img id="stat-avatar" src="" class="avatar-img" alt="Avatar">
+                        </div>
                         <div class="absolute -bottom-3 -right-3 bg-pink-500 text-white px-4 py-1 rounded-xl font-bold shadow-xl text-lg">
                             Lvl <span id="stat-level">1</span>
                         </div>
@@ -272,41 +298,41 @@
                 
                 <div class="game-card group" data-id="pong-mod">
                     <span class="fav-star" onclick="toggleFavorite('pong-mod')">❤</span>
-                    <img src="Pong.png" class="w-full h-52 object-cover" alt="Pong Moderne">
+                    <img src="Pong.png" alt="Pong Moderne">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Pong Moderne</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Le tennis légendaire revisité : graphismes fluides, affrontez l'IA ou vos amis !</p>
-                        <button onclick="launchGame('pong-mod', 'Jeu pong.html')" class="btn-play w-full">Lancer</button>
+                        <button onclick="launchGame('pong-mod', 'Jeu pong.html')" class="btn-play">Lancer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="asteroids">
                     <span class="fav-star" onclick="toggleFavorite('asteroids')">❤</span>
-                    <img src="Asteroid.jpg" class="w-full h-52 object-cover" alt="Asteroids">
+                    <img src="Asteroid.jpg" alt="Asteroids">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Asteroids</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Détruisez les astéroïdes, évitez les collisions et survivez dans l'espace profond !</p>
-                        <button onclick="launchGame('asteroids', 'Asteroid.html')" class="btn-play w-full">Lancer</button>
+                        <button onclick="launchGame('asteroids', 'Asteroid.html')" class="btn-play">Lancer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="pong-classic">
                     <span class="fav-star" onclick="toggleFavorite('pong-classic')">❤</span>
-                    <img src="Pong Classique.png" class="w-full h-52 object-cover" alt="Pong Classique">
+                    <img src="Pong Classique.png" alt="Pong Classique">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Pong Classique</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Le jeu de tennis originel revisité avec des graphismes ultra-propres.</p>
-                        <button onclick="launchGame('pong-classic', 'Jeu de pong classique.html')" class="btn-play w-full">Lancer</button>
+                        <button onclick="launchGame('pong-classic', 'Jeu de pong classique.html')" class="btn-play">Lancer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="snake">
                     <span class="fav-star" onclick="toggleFavorite('snake')">❤</span>
-                    <img src="snake.jpg" class="w-full h-52 object-cover" alt="Snake">
+                    <img src="snake.jpg" alt="Snake">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Snake</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Glissez, mangez des pommes et grandissez... sans jamais vous mordre la queue !</p>
-                        <button onclick="launchGame('snake', 'Jeu snake.html')" class="btn-play w-full">Lancer</button>
+                        <button onclick="launchGame('snake', 'Jeu snake.html')" class="btn-play">Lancer</button>
                     </div>
                 </div>
             </div>
@@ -341,8 +367,8 @@
             </div>
 
             <div class="flex gap-4">
-                <button onclick="saveProfile()" class="flex-1 bg-pink-500 py-4 rounded-2xl font-bold text-white shadow-lg">VALIDER</button>
-                <button onclick="toggleProfileModal()" class="px-6 py-4 rounded-2xl font-bold opacity-60 hover:opacity-100">ANNULER</button>
+                <button onclick="saveProfile()" class="flex-1 bg-pink-500 py-4 rounded-2xl font-bold text-white shadow-lg uppercase">Sauvegarder</button>
+                <button onclick="toggleProfileModal()" class="px-6 py-4 rounded-2xl font-bold opacity-60 hover:opacity-100 uppercase">Fermer</button>
             </div>
         </div>
     </div>
@@ -436,7 +462,7 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    hubState.avatar = e.target.result; // Sauvegarde le base64
+                    hubState.avatar = e.target.result;
                     updateAvatarVisuals();
                 };
                 reader.readAsDataURL(file);
@@ -534,8 +560,8 @@
                     clone.querySelector('.fav-star').onclick = () => toggleFavorite(id);
                     const btn = clone.querySelector('.btn-play');
                     if(btn) {
-                        const originalOnclick = card.querySelector('.btn-play').getAttribute('onclick');
-                        btn.setAttribute('onclick', originalOnclick);
+                        const originalUrl = card.querySelector('.btn-play').getAttribute('onclick').match(/'([^']+)'/g)[1].replace(/'/g, "");
+                        btn.onclick = () => launchGame(id, originalUrl);
                     }
                     favGrid.appendChild(clone);
                 }
@@ -554,6 +580,7 @@
     </script>
 </body>
 </html>
+
 
 
 
