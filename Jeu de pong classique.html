@@ -1,329 +1,356 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pong — propre et réactif</title>
-  <style>
-    :root{
-      --bg1:#0f1724; /* deep navy */
-      --bg2:#071026; /* darker */
-      --accent:#30e0c8; /* teal */
-      --muted:#8b97a6;
-      --glass: rgba(255,255,255,0.04);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-    }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#e6eef6}
-    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
-
-    .card{
-      width:min(960px,96vw);
-      aspect-ratio: 16/9; /* keep cinematic aspect */
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
-      border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,0.6);padding:18px;display:flex;flex-direction:column;gap:12px;backdrop-filter: blur(6px);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puissance 4</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: url("https://www.transparenttextures.com/patterns/wood-pattern.png");
+        background-size: cover;
+        text-align: center;
+        color: white;
     }
 
-    header{display:flex;align-items:center;justify-content:space-between}
-    h1{font-size:18px;margin:0;font-weight:600;letter-spacing:0.4px}
-    .controls{display:flex;gap:8px;align-items:center}
-    button{background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:var(--muted);padding:8px 12px;border-radius:10px;font-weight:600;cursor:pointer}
-    button.primary{background:linear-gradient(90deg,var(--accent),#6ef3d9);color:#042427;border:none}
-    .scoreboard{display:flex;gap:12px;align-items:center}
-    .score{font-size:20px;font-weight:700;color:var(--accent);min-width:42px;text-align:center}
-    p.hint{margin:0;color:var(--muted);font-size:12px}
+    h1 {
+        margin-top: 20px;
+        text-shadow: 2px 2px 4px black;
+        font-size: 40px;
+    }
 
-    .stage{flex:1;display:grid;grid-template-columns:1fr 220px;gap:12px}
-    .game{background:radial-gradient(800px 300px at 20% 10%, rgba(255,255,255,0.02), transparent), linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center}
-    canvas{width:100%;height:100%;display:block;border-radius:8px}
+    /* MENU */
+    #menu {
+        margin-top: 50px;
+        animation: fadeIn 1s;
+    }
 
-    .sidebar{background:transparent;color:var(--muted);padding:10px;border-radius:10px;display:flex;flex-direction:column;gap:10px}
-    .row{display:flex;justify-content:space-between;align-items:center}
-    .label{font-size:12px}
-    .range{width:100%}
-    footer{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+    button {
+        padding: 15px 35px;
+        margin: 10px;
+        font-size: 22px;
+        background-color: #A0522D;
+        border: none;
+        color: white;
+        cursor: pointer;
+        border-radius: 10px;
+        box-shadow: 0 0 15px black;
+        transition: 0.2s;
+    }
 
-    @media (max-width:780px){.stage{grid-template-columns:1fr;grid-auto-rows:1fr}.sidebar{order:2}}
-  </style>
+    button:hover {
+        background-color: #D2691E;
+        transform: scale(1.05);
+    }
+
+    /* JEU - version par défaut (PC / tablette) */
+    #game {
+        display: none;
+        margin: auto;
+        margin-top: 20px;
+        width: 90vw;
+        max-width: 500px;
+    }
+
+    #grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        background-color: #8B4513;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px black;
+    }
+
+    .cell {
+        width: 100%;
+        padding-bottom: 100%;
+        background-color: #5C3317;
+        border-radius: 50%;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .token {
+        position: absolute;
+        top: -100%;
+        left: 10%;
+        width: 80%;
+        height: 80%;
+        border-radius: 50%;
+        animation: drop 0.25s forwards;
+    }
+
+    @keyframes drop {
+        to { top: 10%; }
+    }
+
+    .p1 { background-color: red; }
+    .p2 { background-color: yellow; }
+
+    #status {
+        margin-top: 20px;
+        font-size: 24px;
+        text-shadow: 2px 2px 4px black;
+    }
+
+    #restartBtn, #homeBtn {
+        display: none;
+        margin-top: 20px;
+        font-size: 20px;
+        padding: 12px 25px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 📱 Agrandir clairement le plateau sur mobile */
+    @media (max-width: 600px) {
+        h1 {
+            font-size: 30px;
+            margin-top: 10px;
+        }
+
+        #game {
+            width: 100vw;
+            max-width: 100vw;
+        }
+
+        #grid {
+            gap: 4px;
+            padding: 8px;
+        }
+
+        .cell {
+            padding-bottom: 135%;
+        }
+
+        .token {
+            width: 85%;
+            height: 85%;
+            left: 7.5%;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 25px;
+        }
+
+        #status {
+            font-size: 20px;
+        }
+    }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <header>
-        <h1>Pong — Graphisme propre</h1>
-        <div class="controls">
-          <div class="scoreboard"><div class="score" id="scoreLeft">0</div><div style="color:var(--muted)">—</div><div class="score" id="scoreRight">0</div></div>
-          <button id="startBtn" class="primary">Démarrer</button>
-          <button id="pauseBtn">Pause</button>
-        </div>
-      </header>
 
-      <div class="stage">
-        <div class="game">
-          <canvas id="c"></canvas>
-        </div>
+<h1>Puissance 4</h1>
 
-        <aside class="sidebar">
-          <div class="row"><div class="label">Vitesse balle</div><input id="ballSpeed" class="range" type="range" min="200" max="1200" value="420"></div>
-          <div class="row"><div class="label">IA difficulté</div><input id="aiLevel" class="range" type="range" min="0" max="1" step="0.01" value="0.72"></div>
-          <div class="row"><div class="label">Taille palette</div><input id="paddleSize" class="range" type="range" min="60" max="220" value="140"></div>
-          <div><p class="hint">Contrôles: flèches haut/bas (joueur gauche) ou toucher/cliquer pour déplacer la palette. Clic/mettez en pause pour reprendre.</p></div>
-          <div class="row"><div class="label">Stylisation</div><div style="font-size:12px;color:var(--muted)">Canvas haute qualité, ombres et glow</div></div>
-        </aside>
-      </div>
+<!-- MENU -->
+<div id="menu">
+    <button onclick="startGame('2p')">Jouer contre un ami</button>
+    <button onclick="startGame('ia')">Jouer contre l'IA</button>
+</div>
 
-      <footer>
-        <div>Made with ❤️ — simple & responsive</div>
-        <div id="fps" style="font-variant-numeric:tabular-nums">0 fps</div>
-      </footer>
-    </div>
-  </div>
+<!-- JEU -->
+<div id="game">
+    <div id="grid"></div>
+    <div id="status"></div>
+    <button id="restartBtn" onclick="restartGame()">Rejouer</button>
+    <button id="homeBtn" onclick="goHome()">Retour à l'accueil</button>
+</div>
 
-  <script>
-  // Pong — clean implementation
-  (() => {
-    const canvas = document.getElementById('c');
-    const ctx = canvas.getContext('2d');
-    let DPR = window.devicePixelRatio || 1;
+<!-- SONS -->
+<audio id="soundDrop" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b3e3c7f4e.mp3?filename=click-124467.mp3"></audio>
+<audio id="soundWin" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b4e0d8f2e.mp3?filename=success-1-6297.mp3"></audio>
 
-    function resize(){
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = Math.round(rect.width * DPR);
-      canvas.height = Math.round(rect.height * DPR);
-      ctx.setTransform(DPR,0,0,DPR,0,0);
-    }
-    window.addEventListener('resize', resize);
+<script>
+    const COLS = 7, ROWS = 6;
+    let grid = [];
+    let currentPlayer = 1;
+    let mode = "2p";
+    let gameOver = false;
 
-    // Game state
-    const state = {
-      running:false,
-      paused:false,
-      lastTime:0,
-      fps:0,
-      playerY:0,
-      aiY:0,
-      scoreL:0,
-      scoreR:0
-    };
+    const gridDiv = document.getElementById("grid");
+    const statusDiv = document.getElementById("status");
+    const restartBtn = document.getElementById("restartBtn");
+    const homeBtn = document.getElementById("homeBtn");
+    const soundDrop = document.getElementById("soundDrop");
+    const soundWin = document.getElementById("soundWin");
 
-    // Params
-    const params = {
-      paddleWidth: 12,
-      paddleHeight: 140,
-      paddleMargin: 18,
-      ballRadius: 10,
-      ballSpeed: 420, // px/sec
-      aiLevel: 0.72
-    };
-
-    // Entities
-    const ball = {x:0,y:0,vx:0,vy:0,r:params.ballRadius};
-
-    function resetPositions(){
-      const W = canvas.width / DPR, H = canvas.height / DPR;
-      state.playerY = (H - params.paddleHeight)/2;
-      state.aiY = (H - params.paddleHeight)/2;
-      ball.x = W/2; ball.y = H/2;
-      // random direction
-      const angle = (Math.random()*Math.PI/3) - Math.PI/6; // +/-30deg
-      const dir = Math.random() < 0.5 ? -1 : 1;
-      ball.vx = dir * params.ballSpeed * Math.cos(angle);
-      ball.vy = params.ballSpeed * Math.sin(angle);
+    function startGame(selectedMode) {
+        mode = selectedMode;
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("game").style.display = "block";
+        restartGame();
     }
 
-    function serve(){
-      resetPositions();
+    function goHome() {
+        document.getElementById("game").style.display = "none";
+        document.getElementById("menu").style.display = "block";
     }
 
-    // Controls
-    let pointerActive=false;
-    function pointerMove(clientY){
-      const rect = canvas.getBoundingClientRect();
-      const y = (clientY - rect.top);
-      // control the left paddle center
-      state.playerY = Math.max(8, Math.min(rect.height - params.paddleHeight - 8, y - params.paddleHeight/2));
-    }
-    canvas.addEventListener('pointerdown', (e)=>{pointerActive=true;pointerMove(e.clientY);canvas.setPointerCapture(e.pointerId)});
-    canvas.addEventListener('pointermove', (e)=>{ if(pointerActive) pointerMove(e.clientY)});
-    window.addEventListener('pointerup',(e)=>{pointerActive=false});
-
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'ArrowUp') state.playerY -= 28;
-      if(e.key === 'ArrowDown') state.playerY += 28;
-      if(e.key === ' '){ togglePause(); e.preventDefault(); }
-      clampPlayer();
-    });
-
-    function clampPlayer(){
-      const H = canvas.height / DPR;
-      state.playerY = Math.max(8, Math.min(H - params.paddleHeight - 8, state.playerY));
+    function restartGame() {
+        gameOver = false;
+        currentPlayer = 1;
+        restartBtn.style.display = "none";
+        homeBtn.style.display = "none";
+        initGrid();
     }
 
-    // UI bindings
-    document.getElementById('ballSpeed').addEventListener('input', (e)=>{ params.ballSpeed = Number(e.target.value); });
-    document.getElementById('aiLevel').addEventListener('input', (e)=>{ params.aiLevel = Number(e.target.value); });
-    document.getElementById('paddleSize').addEventListener('input', (e)=>{ params.paddleHeight = Number(e.target.value); clampPlayer(); });
+    function initGrid() {
+        grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        gridDiv.innerHTML = "";
 
-    document.getElementById('startBtn').addEventListener('click', ()=>{ startGame(); });
-    document.getElementById('pauseBtn').addEventListener('click', ()=>{ togglePause(); });
-
-    function togglePause(){ state.paused = !state.paused; document.getElementById('pauseBtn').textContent = state.paused ? 'Reprendre' : 'Pause'; }
-
-    function startGame(){
-      DPR = window.devicePixelRatio || 1; resize();
-      state.scoreL = 0; state.scoreR = 0; updateScore();
-      serve();
-      state.running = true; state.paused = false; state.lastTime = performance.now();
-      requestAnimationFrame(loop);
-    }
-
-    // Physics & collision
-    function step(dt){
-      // update ball velocity to match speed parameter (keep direction)
-      const speed = Math.hypot(ball.vx, ball.vy);
-      if(speed !== params.ballSpeed){
-        const k = params.ballSpeed / (speed || params.ballSpeed);
-        ball.vx *= k; ball.vy *= k;
-      }
-
-      ball.x += ball.vx * dt;
-      ball.y += ball.vy * dt;
-
-      const W = canvas.width / DPR, H = canvas.height / DPR;
-
-      // top/bottom
-      if(ball.y - ball.r < 8){ ball.y = 8 + ball.r; ball.vy = -ball.vy; }
-      if(ball.y + ball.r > H - 8){ ball.y = H - 8 - ball.r; ball.vy = -ball.vy; }
-
-      // paddles
-      const leftX = params.paddleMargin + params.paddleWidth/2;
-      const rightX = W - params.paddleMargin - params.paddleWidth/2;
-
-      // left paddle collision
-      if(ball.x - ball.r < params.paddleMargin + params.paddleWidth){
-        const py = state.playerY; const ph = params.paddleHeight;
-        if(ball.y > py && ball.y < py + ph){
-          ball.x = params.paddleMargin + params.paddleWidth + ball.r; // push out
-          // reflect with spin based on where it hit
-          const rel = (ball.y - (py + ph/2)) / (ph/2); // -1 .. 1
-          const maxBounce = Math.PI/3; // 60deg
-          const ang = rel * maxBounce;
-          const speedNow = Math.hypot(ball.vx, ball.vy) * 1.04; // slight speed up
-          ball.vx = Math.abs(speedNow * Math.cos(ang));
-          ball.vy = speedNow * Math.sin(ang);
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.dataset.col = c;
+                // Important : uniquement click, pas touchstart
+                cell.addEventListener("click", () => play(c));
+                gridDiv.appendChild(cell);
+            }
         }
-      }
 
-      // right paddle collision
-      if(ball.x + ball.r > W - params.paddleMargin - params.paddleWidth){
-        const py = state.aiY; const ph = params.paddleHeight;
-        if(ball.y > py && ball.y < py + ph){
-          ball.x = W - params.paddleMargin - params.paddleWidth - ball.r;
-          const rel = (ball.y - (py + ph/2)) / (ph/2);
-          const maxBounce = Math.PI/3;
-          const ang = rel * maxBounce;
-          const speedNow = Math.hypot(ball.vx, ball.vy) * 1.04;
-          ball.vx = -Math.abs(speedNow * Math.cos(ang));
-          ball.vy = speedNow * Math.sin(ang);
+        updateStatus();
+    }
+
+    function play(col) {
+        if (gameOver) return;
+
+        let row = findRow(col);
+        if (row === -1) return;
+
+        grid[row][col] = currentPlayer;
+        drawTokens();
+        soundDrop.play();
+
+        if (checkWin(currentPlayer)) {
+            statusDiv.textContent = `Joueur ${currentPlayer} a gagné !`;
+            soundWin.play();
+            gameOver = true;
+            restartBtn.style.display = "inline-block";
+            homeBtn.style.display = "inline-block";
+            return;
         }
-      }
 
-      // score
-      if(ball.x < -40){ state.scoreR++; updateScore(); serve(); }
-      if(ball.x > W + 40){ state.scoreL++; updateScore(); serve(); }
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateStatus();
 
-      // AI movement
-      const target = ball.y - params.paddleHeight/2;
-      state.aiY += (target - state.aiY) * (params.aiLevel * 0.08 + 0.02);
-      // add small tracking error at lower difficulty
-      const err = (1 - params.aiLevel) * 30 * Math.sin(performance.now()/400);
-      state.aiY += err * 0.01;
-      // clamp
-      state.aiY = Math.max(8, Math.min(H - params.paddleHeight - 8, state.aiY));
+        if (mode === "ia" && currentPlayer === 2) {
+            setTimeout(aiPlay, 400);
+        }
     }
 
-    function updateScore(){ document.getElementById('scoreLeft').textContent = state.scoreL; document.getElementById('scoreRight').textContent = state.scoreR; }
-
-    // Rendering
-    function draw(){
-      const W = canvas.width / DPR, H = canvas.height / DPR;
-      ctx.clearRect(0,0,W,H);
-
-      // background vignette
-      const g = ctx.createLinearGradient(0,0,0,H);
-      g.addColorStop(0,'rgba(255,255,255,0.02)');
-      g.addColorStop(1,'rgba(0,0,0,0.06)');
-      ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-
-      // center dashed line
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([10,16]);
-      ctx.beginPath(); ctx.moveTo(W/2,10); ctx.lineTo(W/2,H-10); ctx.stroke(); ctx.restore();
-
-      // paddles
-      // left
-      drawRoundedRect(params.paddleMargin, state.playerY, params.paddleWidth, params.paddleHeight, 8, true);
-      // right
-      drawRoundedRect(W - params.paddleMargin - params.paddleWidth, state.aiY, params.paddleWidth, params.paddleHeight, 8, true);
-
-      // ball shadow + glow
-      ctx.beginPath(); ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.ellipse(ball.x+6, ball.y+6, ball.r*0.9, ball.r*0.6, 0,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.fillStyle = 'white'; ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
-      // glow
-      const glow = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.r*5);
-      glow.addColorStop(0, 'rgba(48,224,200,0.18)');
-      glow.addColorStop(1, 'rgba(48,224,200,0)');
-      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r*5, 0, Math.PI*2); ctx.fill();
-
-      // little HUD
-      ctx.font = '12px Inter, system-ui'; ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.fillText('paddle: ' + Math.round(params.paddleHeight) + 'px', 14, H - 10);
+    function findRow(col) {
+        for (let r = ROWS - 1; r >= 0; r--) {
+            if (grid[r][col] === 0) return r;
+        }
+        return -1;
     }
 
-    function drawRoundedRect(x,y,w,h,r,highlight){
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x+r, y);
-      ctx.arcTo(x+w, y, x+w, y+h, r);
-      ctx.arcTo(x+w, y+h, x, y+h, r);
-      ctx.arcTo(x, y+h, x, y, r);
-      ctx.arcTo(x, y, x+w, y, r);
-      ctx.closePath();
-      // fill with subtle gradient
-      const g = ctx.createLinearGradient(x, y, x, y+h);
-      g.addColorStop(0, 'rgba(255,255,255,0.06)');
-      g.addColorStop(1, 'rgba(255,255,255,0.02)');
-      ctx.fillStyle = g; ctx.fill();
-      // border
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1; ctx.stroke();
-      // accent glow on the inner edge
-      if(highlight){
-        ctx.shadowColor = 'rgba(48,224,200,0.12)'; ctx.shadowBlur = 16;
-        ctx.fillStyle = 'rgba(48,224,200,0.02)'; ctx.fill();
-      }
-      ctx.restore();
+    function drawTokens() {
+        document.querySelectorAll(".cell").forEach(cell => cell.innerHTML = "");
+
+        for (let r = 0; r < ROWS; r++) {
+            for (let c = 0; c < COLS; c++) {
+                if (grid[r][c] !== 0) {
+                    const token = document.createElement("div");
+                    token.classList.add("token", grid[r][c] === 1 ? "p1" : "p2");
+
+                    const index = r * COLS + c;
+                    document.querySelectorAll(".cell")[index].appendChild(token);
+                }
+            }
+        }
     }
 
-    // Main loop
-    function loop(ts){
-      if(!state.running) return;
-      if(state.paused){ state.lastTime = ts; requestAnimationFrame(loop); return; }
-      const dt = Math.min(0.032, (ts - state.lastTime)/1000); // cap
-      step(dt);
-      draw();
-      // FPS
-      state.fps = Math.round(1/dt);
-      document.getElementById('fps').textContent = state.fps + ' fps';
-      state.lastTime = ts;
-      requestAnimationFrame(loop);
+    function updateStatus() {
+        statusDiv.textContent = currentPlayer === 1
+            ? "Tour du Joueur 1 (Rouge)"
+            : "Tour du Joueur 2 (Jaune)";
     }
 
-    // initial resize & serve
-    resize(); serve(); draw();
+    /* IA améliorée */
+    function aiPlay() {
+        // IA gagne si possible
+        for (let c = 0; c < COLS; c++) {
+            let r = findRow(c);
+            if (r !== -1) {
+                grid[r][c] = 2;
+                if (checkWin(2)) {
+                    drawTokens();
+                    soundDrop.play();
+                    soundWin.play();
+                    statusDiv.textContent = "L'IA a gagné !";
+                    gameOver = true;
+                    restartBtn.style.display = "inline-block";
+                    homeBtn.style.display = "inline-block";
+                    return;
+                }
+                grid[r][c] = 0;
+            }
+        }
 
-    // expose for debugging in devtools if needed
-    window._pong = { state, params, ball };
-  })();
-  </script>
+        // IA bloque le joueur
+        for (let c = 0; c < COLS; c++) {
+            let r = findRow(c);
+            if (r !== -1) {
+                grid[r][c] = 1;
+                if (checkWin(1)) {
+                    grid[r][c] = 2;
+                    drawTokens();
+                    soundDrop.play();
+                    currentPlayer = 1;
+                    updateStatus();
+                    return;
+                }
+                grid[r][c] = 0;
+            }
+        }
+
+        // Coup aléatoire
+        let col;
+        do {
+            col = Math.floor(Math.random() * COLS);
+        } while (findRow(col) === -1);
+
+        play(col);
+    }
+
+    function checkWin(player) {
+        // Horizontal
+        for (let r = 0; r < ROWS; r++)
+            for (let c = 0; c < COLS - 3; c++)
+                if (grid[r][c] === player && grid[r][c+1] === player && grid[r][c+2] === player && grid[r][c+3] === player)
+                    return true;
+
+        // Vertical
+        for (let c = 0; c < COLS; c++)
+            for (let r = 0; r < ROWS - 3; r++)
+                if (grid[r][c] === player && grid[r+1][c] === player && grid[r+2][c] === player && grid[r+3][c] === player)
+                    return true;
+
+        // Diagonale /
+        for (let r = 3; r < ROWS; r++)
+            for (let c = 0; c < COLS - 3; c++)
+                if (grid[r][c] === player && grid[r-1][c+1] === player && grid[r-2][c+2] === player && grid[r-3][c+3] === player)
+                    return true;
+
+        // Diagonale \
+        for (let r = 0; r < ROWS - 3; r++)
+            for (let c = 0; c < COLS - 3; c++)
+                if (grid[r][c] === player && grid[r+1][c+1] === player && grid[r+2][c+2] === player && grid[r+3][c+3] === player)
+                    return true;
+
+        return false;
+    }
+</script>
+
 </body>
 </html>
