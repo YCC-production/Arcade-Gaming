@@ -205,36 +205,41 @@
     <canvas id="bg-canvas"></canvas>
 
     <!-- HEADER -->
-    <header class="glass-header py-4 px-6">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <div class="text-3xl animate-bounce">🎮</div>
-                <h1 class="text-xl font-bold tracking-tighter uppercase hidden sm:block">
-                    Arcade <span class="text-pink-500">Hub</span>
-                </h1>
+<header class="glass-header py-4 px-6">
+    <div class="max-w-7xl mx-auto grid grid-cols-3 items-center">
+        
+        <div class="flex items-center">
+            <h1 class="text-xl font-bold tracking-tighter uppercase hidden sm:block">
+                Arcade <span class="text-pink-500">Hub</span>
+            </h1>
+        </div>
+
+        <div class="flex justify-center">
+            <a href="index.html">
+                <img src="ton-logo.png" alt="Logo" class="h-12 w-auto transform hover:scale-110 transition-transform">
+            </a>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 md:gap-8">
+            <div class="flex bg-black/50 p-1 rounded-full border border-white/10 text-[10px] hidden lg:flex">
+                <button onclick="changeTheme('original')" id="btn-t-original" class="px-3 py-1 rounded-full opacity-100 bg-pink-500">ORIGINAL</button>
+                <button onclick="changeTheme('retro')" id="btn-t-retro" class="px-3 py-1 rounded-full opacity-50">RÉTRO</button>
+                <button onclick="changeTheme('modern')" id="btn-t-modern" class="px-3 py-1 rounded-full opacity-50">FUTUR</button>
             </div>
 
-            <div class="flex items-center gap-4 md:gap-8">
-                <!-- Selecteur de Thème -->
-                <div class="flex bg-black/50 p-1 rounded-full border border-white/10 text-[10px] mr-4">
-                    <button onclick="changeTheme('original')" id="btn-t-original" class="px-3 py-1 rounded-full opacity-100 bg-pink-500">ORIGINAL</button>
-                    <button onclick="changeTheme('retro')" id="btn-t-retro" class="px-3 py-1 rounded-full opacity-50">RÉTRO</button>
-                    <button onclick="changeTheme('modern')" id="btn-t-modern" class="px-3 py-1 rounded-full opacity-50">FUTUR</button>
+            <div class="flex items-center gap-3 bg-white/5 py-1 px-4 rounded-full border border-white/10 cursor-pointer hover:bg-white/10" onclick="toggleProfileModal()">
+                <div class="w-10 h-10 rounded-full border-2 border-pink-500 bg-slate-800 overflow-hidden">
+                    <img id="header-avatar" src="" class="avatar-img" alt="Avatar">
                 </div>
-
-                <!-- Profil Nav -->
-                <div class="flex items-center gap-3 bg-white/5 py-1 px-4 rounded-full border border-white/10 cursor-pointer hover:bg-white/10" onclick="toggleProfileModal()">
-                    <div class="w-10 h-10 rounded-full border-2 border-pink-500 bg-slate-800 overflow-hidden">
-                        <img id="header-avatar" src="" class="avatar-img" alt="Avatar">
-                    </div>
-                    <div class="text-left hidden md:block">
-                        <div id="header-pseudo" class="text-sm font-bold leading-none">Joueur</div>
-                        <div class="text-[10px] opacity-60">NIVEAU <span id="header-level">1</span></div>
-                    </div>
+                <div class="text-left hidden md:block">
+                    <div id="header-pseudo" class="text-sm font-bold leading-none">Joueur</div>
+                    <div class="text-[10px] opacity-60">NIVEAU <span id="header-level">1</span></div>
                 </div>
             </div>
         </div>
-    </header>
+
+    </div>
+</header>
 
     <main class="max-w-7xl mx-auto px-6 pt-10 pb-20">
         
@@ -592,6 +597,7 @@
     </script>
 </body>
 </html>
+
 
 
 
