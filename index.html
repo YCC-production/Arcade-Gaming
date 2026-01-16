@@ -7,197 +7,7 @@
     <!-- Polices pour les thèmes -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* --- SYSTÈME DE THÈMES --- */
-        :root {
-            --primary: #ef476f;
-            --secondary: #118ab2;
-            --accent: #ffd700;
-            --font-main: 'Inter', sans-serif;
-            --card-bg: rgba(15, 23, 42, 0.7);
-            --border-glow: rgba(239, 71, 111, 0.3);
-            /* Couleurs du style original restaurées */
-            --original-bg: linear-gradient(135deg, #0a1128 0%, #001f54 50%, #034078 100%);
-        }
-
-        .theme-retro {
-            --primary: #00ff00;
-            --secondary: #ff00ff;
-            --accent: #ffff00;
-            --font-main: 'Press Start 2P', cursive;
-            --card-bg: rgba(0, 0, 0, 0.9);
-            --border-glow: rgba(0, 255, 0, 0.5);
-        }
-
-        .theme-modern {
-            --primary: #00f2ff;
-            --secondary: #7000ff;
-            --accent: #ff0055;
-            --font-main: 'Orbitron', sans-serif;
-            --card-bg: rgba(10, 10, 30, 0.5);
-            --border-glow: rgba(0, 242, 255, 0.5);
-        }
-
-        /* --- STYLES GÉNÉRAUX --- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.2s;
-        }
-
-        body {
-            font-family: var(--font-main);
-            color: white;
-            background: var(--original-bg); /* Fond original par défaut */
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        body.theme-retro { background: #000; }
-        body.theme-modern { background: #020205; }
-
-        /* Canvas d'arrière-plan */
-        #bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .glass-header {
-            background: rgba(10, 17, 40, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--primary);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .game-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            height: 100%;
-        }
-
-        /* Ajustement des images de jeux pour un placement parfait */
-        .game-card img {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            object-fit: cover;
-            display: block;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .game-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-8px);
-            box-shadow: 0 0 25px var(--border-glow);
-        }
-
-        .game-card.is-favorite {
-            border: 2px solid var(--accent);
-        }
-
-        .btn-play {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            margin-top: auto;
-        }
-
-        .fav-star {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            cursor: pointer;
-            font-size: 1.5rem;
-            filter: drop-shadow(0 0 5px black);
-            z-index: 50;
-            color: rgba(255,255,255,0.4);
-            user-select: none;
-        }
-
-        .fav-star.active {
-            color: var(--accent);
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 8px var(--accent));
-        }
-
-        /* Progress Bar */
-        .xp-bar-container {
-            height: 14px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        #xp-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            width: 0%;
-            transition: width 0.8s ease-out;
-        }
-
-        /* Modal Profile */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.92);
-            backdrop-filter: blur(8px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Theme-specific Overrides */
-        .theme-retro .game-card { border-radius: 0; border: 4px solid var(--primary); }
-        .theme-retro .btn-play { border-radius: 0; border: 2px solid white; }
-        .theme-retro .game-card img { border-radius: 0; }
-        
-        .theme-modern .game-card { border-radius: 4px; border: 1px solid rgba(0, 242, 255, 0.3); }
-        .theme-modern .btn-play { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); border-radius: 0; }
-
-        /* Upload Input style */
-        .upload-label {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 12px;
-            border: 1px dashed var(--primary);
-            margin-top: 10px;
-        }
-        .upload-label:hover { background: rgba(255, 255, 255, 0.2); }
-
-        /* Avatar styles for perfect placement */
-        .avatar-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: inherit;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body id="main-body" class="theme-original">
 
@@ -216,7 +26,7 @@
 
         <div class="flex justify-center">
             <a href="index.html">
-                <img src="CC.png" alt="Logo" class="h-12 w-auto transform hover:scale-110 transition-transform">
+                <img src="Images/CC.png" alt="Logo" class="h-12 w-auto transform hover:scale-110 transition-transform">
             </a>
         </div>
 
@@ -303,52 +113,52 @@
                 
                 <div class="game-card group" data-id="pong-mod">
                     <span class="fav-star" onclick="toggleFavorite('pong-mod')">❤</span>
-                    <img src="Pong.png" alt="Pong Moderne">
+                    <img src="Images/Jeu pong.png" alt="Pong Moderne">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Pong Moderne</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Le tennis légendaire revisité : graphismes fluides, affrontez l'IA ou vos amis !</p>
-                        <button onclick="launchGame('pong-mod', 'Jeu pong.html')" class="btn-play">Jouer</button>
+                        <button onclick="launchGame('pong-mod', 'Jeu pong/Jeu pong.html')" class="btn-play">Jouer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="asteroids">
                     <span class="fav-star" onclick="toggleFavorite('asteroids')">❤</span>
-                    <img src="Asteroid.jpg" alt="Asteroids">
+                    <img src="Images/Jeu asteroid.jpg" alt="Asteroids">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Asteroids</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Détruisez les astéroïdes, évitez les collisions et survivez dans l'espace profond !</p>
-                        <button onclick="launchGame('asteroids', 'Asteroid.html')" class="btn-play">Jouer</button>
+                        <button onclick="launchGame('asteroids', 'Jeu asteroid/Jeu asteroid.html')" class="btn-play">Jouer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="puissnace 4">
                     <span class="fav-star" onclick="toggleFavorite('puissance 4')">❤</span>
-                    <img src="Puissance 4.png" alt="Puissance 4">
+                    <img src="Images/Jeu puissance 4.png" alt="Puissance 4">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Puissance 4</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Le Puissance 4 en bois où tu dégaines tes jetons plus vite que ton adversaire.</p>
-                        <button onclick="launchGame('Puissance 4', 'Jeu puissance 4.html')" class="btn-play">Jouer</button>
+                        <button onclick="launchGame('Puissance 4', 'Jeu puissance 4/Jeu puissance 4.html')" class="btn-play">Jouer</button>
                     </div>
                 </div>
 
                 <div class="game-card group" data-id="snake">
                     <span class="fav-star" onclick="toggleFavorite('snake')">❤</span>
-                    <img src="snake.jpg" alt="Snake">
+                    <img src="Images/Jeu snake.jpg" alt="Snake">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Snake</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Glissez, mangez des pommes et grandissez... sans jamais vous mordre la queue !</p>
-                        <button onclick="launchGame('snake', 'Jeu snake.html')" class="btn-play">Jouer</button>
+                        <button onclick="launchGame('snake', 'Jeu snake/Jeu snake.html')" class="btn-play">Jouer</button>
                     </div>
                  </div>
                 
 
                  <div class="game-card group" data-id="calendrier de l'avent">
-                    <span class="fav-star" onclick="toggleFavorite('calendrier de l'avent')">❤</span>
-                    <img src="Noel.png" alt="Calendrier de l'Avent">
+                    <span class="fav-star" onclick="toggleFavorite('calendrier de l avent')">❤</span>
+                    <img src="Images/Jeu calendrier de l'avent.png" alt="Calendrier de l'Avent">
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-xl font-bold mb-2">Calendrier de l'Avent</h3>
                         <p class="text-xs opacity-60 mb-6 flex-1">Prêt pour le défi de l'Avent ? </p>
-                        <button onclick="launchGame('Calendrier de l Avent', 'Site Jeu de Noël.html')" class="btn-play">Jouer</button>
+                        <button onclick="launchGame('calendrier de l avent', 'Jeu calendrier de l avent/Jeu calendrier de l avent.html')" class="btn-play">Jouer</button>
                     </div>
                 </div>
                     
@@ -359,7 +169,7 @@
     <!-- MODAL CONFIGURATION PROFIL -->
     <div id="profile-modal" class="modal-overlay">
         <div class="bg-slate-900 p-8 rounded-[2rem] border-2 border-pink-500 w-full max-w-md mx-4 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold mb-6 tracking-tight uppercase">Édition du Pilote</h2>
+            <h2 class="text-2xl font-bold mb-6 tracking-tight uppercase">Édition du Profil</h2>
             
             <div class="mb-4">
                 <label class="block text-[10px] uppercase font-black opacity-40 mb-2">Choisir un Avatar</label>
@@ -379,7 +189,7 @@
             </div>
 
             <div class="mb-8 text-left">
-                <label class="block text-[10px] uppercase font-black opacity-40 mb-2 ml-1">Identifiant Pilote</label>
+                <label class="block text-[10px] uppercase font-black opacity-40 mb-2 ml-1">Identifiant Joueur</label>
                 <input type="text" id="input-pseudo" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-pink-500 text-white font-bold" placeholder="Pseudo...">
             </div>
 
@@ -389,212 +199,7 @@
             </div>
         </div>
     </div>
-
-    <script>
-        /**
-         * --- ÉTAT DU HUB ---
-         */
-        const STORAGE_KEY = 'arcade_master_profile_v3';
-        let hubState = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-            pseudo: "Pilote_7",
-            avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Lucky",
-            xp: 0,
-            level: 1,
-            gamesPlayedCount: 0,
-            playTimeMinutes: 0,
-            favorites: [],
-            theme: "original"
-        };
-
-        // --- CANVAS DYNAMIQUE ---
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function initCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            particles = [];
-            const count = hubState.theme === 'retro' ? 50 : 100;
-            for (let i = 0; i < count; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2 + 1,
-                    speedX: (Math.random() - 0.5) * 0.6,
-                    speedY: (Math.random() - 0.5) * 0.6,
-                    color: hubState.theme === 'retro' ? '#00ff00' : 
-                           hubState.theme === 'modern' ? '#00f2ff' : '#ffffff'
-                });
-            }
-        }
-
-        function animateCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach((p, idx) => {
-                p.x += p.speedX; p.y += p.speedY;
-                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-                
-                ctx.fillStyle = p.color;
-                if (hubState.theme === 'retro') {
-                    ctx.globalAlpha = 0.5;
-                    ctx.fillRect(p.x, p.y, 6, 6);
-                } else if (hubState.theme === 'modern') {
-                    ctx.globalAlpha = 0.7;
-                    particles.forEach((p2, idx2) => {
-                        if (idx === idx2) return;
-                        const d = Math.hypot(p.x - p2.x, p.y - p2.y);
-                        if (d < 100) {
-                            ctx.strokeStyle = `rgba(0, 242, 255, ${1 - d/100})`;
-                            ctx.lineWidth = 0.4;
-                            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-                        }
-                    });
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-                } else {
-                    ctx.globalAlpha = 0.3;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-                }
-            });
-            requestAnimationFrame(animateCanvas);
-        }
-
-        /**
-         * --- SYSTÈME DE PROFIL & IMAGE ---
-         */
-        function toggleProfileModal() {
-            const modal = document.getElementById('profile-modal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-            document.getElementById('input-pseudo').value = hubState.pseudo;
-        }
-
-        function selectAvatar(seed) {
-            hubState.avatar = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed}`;
-            updateAvatarVisuals();
-        }
-
-        function uploadAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    hubState.avatar = e.target.result;
-                    updateAvatarVisuals();
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function updateAvatarVisuals() {
-            document.querySelectorAll('.avatar-choice').forEach(img => {
-                const isSelected = img.src === hubState.avatar || img.src.includes(hubState.avatar.split('=')[1]);
-                img.style.borderColor = isSelected ? 'var(--primary)' : 'transparent';
-                img.style.background = isSelected ? 'rgba(239, 71, 111, 0.2)' : 'rgba(255,255,255,0.05)';
-            });
-        }
-
-        function saveProfile() {
-            const pseudo = document.getElementById('input-pseudo').value.trim();
-            if (pseudo) hubState.pseudo = pseudo;
-            saveState(); updateUI(); toggleProfileModal();
-        }
-
-        function toggleFavorite(id) {
-            const idx = hubState.favorites.indexOf(id);
-            if (idx > -1) hubState.favorites.splice(idx, 1);
-            else { hubState.favorites.push(id); addXP(5); }
-            saveState(); updateUI();
-        }
-
-        function addXP(amount) {
-            hubState.xp += amount;
-            const newLevel = Math.floor(hubState.xp / 100) + 1;
-            if (newLevel > hubState.level) hubState.level = newLevel;
-            saveState(); updateUI();
-        }
-
-        function launchGame(id, url) {
-            hubState.gamesPlayedCount++;
-            addXP(20);
-            saveState();
-            window.location.href = url;
-        }
-
-        /**
-         * --- MISE À JOUR UI & THÈMES ---
-         */
-        function changeTheme(themeName) {
-            hubState.theme = themeName;
-            const body = document.getElementById('main-body');
-            body.className = 'theme-' + themeName;
-            
-            // Mise à jour des boutons de thème
-            ['original', 'retro', 'modern'].forEach(t => {
-                const btn = document.getElementById('btn-t-' + t);
-                btn.style.opacity = themeName === t ? "1" : "0.5";
-                btn.style.background = themeName === t ? "var(--primary)" : "transparent";
-            });
-
-            saveState(); initCanvas();
-        }
-
-        function saveState() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(hubState));
-        }
-
-        function updateUI() {
-            document.getElementById('header-avatar').src = hubState.avatar;
-            document.getElementById('stat-avatar').src = hubState.avatar;
-            document.getElementById('header-pseudo').textContent = hubState.pseudo;
-            document.getElementById('header-level').textContent = hubState.level;
-            document.getElementById('stat-level').textContent = hubState.level;
-            document.getElementById('stat-games').textContent = hubState.gamesPlayedCount;
-            document.getElementById('stat-time').textContent = hubState.playTimeMinutes + 'm';
-            document.getElementById('stat-favs').textContent = hubState.favorites.length;
-            
-            const xpInLevel = hubState.xp % 100;
-            document.getElementById('xp-bar-fill').style.width = xpInLevel + '%';
-            document.getElementById('xp-text').textContent = `${xpInLevel} / 100`;
-
-            const ranks = ["Recrue", "Pilote", "As", "Chasseur", "Vétéran", "Légende"];
-            const rIdx = Math.min(Math.floor(hubState.level / 3), ranks.length - 1);
-            document.getElementById('rank-title').textContent = ranks[rIdx];
-
-            // Favoris
-            const favSection = document.getElementById('fav-section');
-            const favGrid = document.getElementById('fav-grid');
-            favGrid.innerHTML = '';
-
-            document.querySelectorAll('#main-grid .game-card').forEach(card => {
-                const id = card.dataset.id;
-                const isFav = hubState.favorites.includes(id);
-                card.querySelector('.fav-star').classList.toggle('active', isFav);
-                card.classList.toggle('is-favorite', isFav);
-
-                if (isFav) {
-                    const clone = card.cloneNode(true);
-                    clone.querySelector('.fav-star').onclick = () => toggleFavorite(id);
-                    const btn = clone.querySelector('.btn-play');
-                    if(btn) {
-                        const originalUrl = card.querySelector('.btn-play').getAttribute('onclick').match(/'([^']+)'/g)[1].replace(/'/g, "");
-                        btn.onclick = () => launchGame(id, originalUrl);
-                    }
-                    favGrid.appendChild(clone);
-                }
-            });
-            favSection.classList.toggle('hidden', hubState.favorites.length === 0);
-        }
-
-        // Timer XP passif
-        setInterval(() => { hubState.playTimeMinutes += 1; addXP(2); }, 60000);
-
-        window.addEventListener('resize', initCanvas);
-        window.onload = () => {
-            changeTheme(hubState.theme);
-            initCanvas(); animateCanvas(); updateUI();
-        };
-    </script>
+    <script src="index.js"></script>
 </body>
 </html>
 

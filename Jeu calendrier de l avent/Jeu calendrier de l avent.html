@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calendrier de l'Avent 2025-2026</title>
+    <link rel="stylesheet" href="Jeu calendrier de l avent.css">
+</head>
+<body>
+
+    <video autoplay muted loop id="video-background">
+        <source src="Images/Background.mp4" type="video/mp4">
+        Votre navigateur ne supporte pas la vidéo HTML5.
+    </video>
+    
+    <div class="video-overlay"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎄 Calendrier de l'Avent 🎄</h1>
+            
+            <div class="countdown-container">
+                <div class="countdown-title">🎉 En route vers le Nouvel An 🎉</div>
+                <div class="countdown-timer" id="countdown">
+                    <div class="time-box"><span id="days">00</span><span class="time-label">Jours</span></div>:
+                    <div class="time-box"><span id="hours">00</span><span class="time-label">Heures</span></div>:
+                    <div class="time-box"><span id="minutes">00</span><span class="time-label">Min</span></div>:
+                    <div class="time-box"><span id="seconds">00</span><span class="time-label">Sec</span></div>
+                </div>
+            </div>
+
+            <p style="color: white; font-size: 1.2em; margin-top: 15px;">Réponds aux questions pour débloquer les cases !</p>
+            
+            <div class="music-control">
+                <button class="music-btn" id="musicBtn">🎵 Musique</button>
+                <audio id="bgMusic" loop>
+                    <source src="Images/Under the Christmas Sky.mp3" type="audio/mpeg">
+                </audio>
+            </div>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Case 1</h2>
+            </div>
+            <img id="modalImage" class="modal-image" src="" alt="Image de la case">
+            <div class="modal-question" id="modalQuestion"></div>
+            <input type="text" class="answer-input" id="answerInput" placeholder="Votre réponse...">
+            <div class="feedback" id="feedback"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-validate" id="validateBtn">✓ Valider</button>
+                <button class="btn btn-close" id="closeBtn">✕ Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="victoryScreen">
+        <div class="firework" style="top: 20%; left: 20%; background: red;"></div>
+        <div class="firework" style="top: 50%; left: 80%; background: blue; animation-delay: 0.3s;"></div>
+        <div class="firework" style="top: 80%; left: 40%; background: gold; animation-delay: 0.6s;"></div>
+        <div class="firework" style="top: 30%; left: 60%; background: green; animation-delay: 0.9s;"></div>
+        
+        <div class="victory-content">
+            <h1>🎅 FÉLICITATIONS ! 🎅</h1>
+            <p>Tu as ouvert toutes les cases !</p>
+            <p style="color: gold; font-size: 1.5em;">Joyeux Noël & Bonne Année !</p>
+            <button class="btn btn-close" onclick="document.getElementById('victoryScreen').style.display='none'">Retour au calendrier</button>
+        </div>
+    </div>
+     <script src="Jeu calendrier de l avent.js"></script>
+</body>
+
+</html>

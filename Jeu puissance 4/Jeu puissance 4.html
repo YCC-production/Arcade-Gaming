@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Puissance 4</title>
+ <link rel="stylesheet" href="Jeu puissance 4.css">
+</head>
+<body>
+
+<h1>Puissance 4</h1>
+
+<!-- MENU -->
+<div id="menu">
+    <button onclick="startGame('2p')">Jouer contre un ami</button>
+    <button onclick="startGame('ia')">Jouer contre l'IA</button>
+</div>
+
+<!-- JEU -->
+<div id="game">
+    <div id="grid"></div>
+    <div id="status"></div>
+    <button id="restartBtn" onclick="restartGame()">Rejouer</button>
+    <button id="homeBtn" onclick="goHome()">Retour à l'accueil</button>
+</div>
+
+<!-- SONS -->
+<audio id="soundDrop" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b3e3c7f4e.mp3?filename=click-124467.mp3"></audio>
+<audio id="soundWin" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b4e0d8f2e.mp3?filename=success-1-6297.mp3"></audio>
+<script src="Jeu puissance 4.js"></script>
+</body>
+</html>

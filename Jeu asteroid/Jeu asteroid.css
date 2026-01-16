@@ -1,0 +1,114 @@
+ @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        
+        body {
+            background-color: #020205;
+            color: #e0e0e0;
+            font-family: 'Orbitron', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            border: 2px solid #1a1a2e;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.2);
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: auto;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #ui-overlay.hidden {
+            display: none !important;
+        }
+
+        .neon-btn {
+            background: rgba(0, 150, 255, 0.1);
+            color: #00f2ff;
+            border: 2px solid #00f2ff;
+            padding: 18px 50px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .neon-btn:hover {
+            background: #00f2ff;
+            color: #000;
+            box-shadow: 0 0 40px #00f2ff;
+            transform: scale(1.05);
+        }
+
+        /* Contrôles Mobiles Améliorés */
+        .mobile-controls {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .btn-touch {
+            width: 75px;
+            height: 75px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 242, 255, 0.3);
+            border-radius: 15px;
+            color: #00f2ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.1s;
+            backdrop-filter: blur(4px);
+            touch-action: none;
+        }
+
+        .btn-touch.active {
+            background: rgba(0, 242, 255, 0.4);
+            border-color: #fff;
+            transform: scale(0.9);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+        }
+
+        .ui-score {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            pointer-events: none;
+            z-index: 45;
+        }

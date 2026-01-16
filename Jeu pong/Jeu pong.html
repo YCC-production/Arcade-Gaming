@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Moderne</title>
+    <link rel="stylesheet" href="Jeu pong.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <h1>PONG</h1>
+            
+            <div class="top-controls">
+                <div class="score-board">
+                    <div class="player-score">
+                        <div id="player1Label">J1</div>
+                        <div id="player1Score">0</div>
+                    </div>
+                    <div class="player-score">
+                        <div id="player2Label">IA</div>
+                        <div id="player2Score">0</div>
+                    </div>
+                </div>
+                <button class="pause-btn" id="pauseBtn">⏸ PAUSE</button>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat">Vitesse: <span id="ballSpeed">5</span></div>
+                <div class="stat">Max: <span id="maxScore">5</span></div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="500"></canvas>
+                <div id="countdown" class="countdown hidden"></div>
+            </div>
+            
+            <div class="mobile-controls" id="mobileControls">
+                <div class="mobile-paddle">
+                    <button class="mobile-btn" id="p1Up">↑</button>
+                    <button class="mobile-btn" id="p1Down">↓</button>
+                </div>
+                <div class="mobile-paddle" id="p2Controls" style="display: none;">
+                    <button class="mobile-btn" id="p2Up">↑</button>
+                    <button class="mobile-btn" id="p2Down">↓</button>
+                </div>
+            </div>
+
+            <div class="controls-info">
+                <h3>Commandes</h3>
+                <div id="controlsContent">
+                    <div class="control-row">
+                        <span>Joueur 1: <span class="key">W</span> <span class="key">S</span></span>
+                    </div>
+                </div>
+                <div style="margin-top: 10px; color: rgba(255, 255, 255, 0.6); font-size: 0.85em;">
+                    Appuyez sur <span class="key">P</span> ou <span class="key">ÉCHAP</span> pour Pause
+                </div>
+            </div>
+        </div>
+
+        <div class="start-menu" id="startMenu">
+            <h2>🎮 PONG</h2>
+            
+            <div class="menu-section">
+                <label>Mode de jeu:</label>
+                <div class="mode-buttons">
+                    <button class="mode-btn selected" id="aiMode">vs IA</button>
+                    <button class="mode-btn" id="friendMode">vs Ami</button>
+                </div>
+            </div>
+
+            <div class="menu-section" id="difficultySection">
+                <label>Difficulté de l'IA:</label>
+                <select id="difficulty">
+                    <option value="easy">Facile</option>
+                    <option value="medium" selected>Moyenne</option>
+                    <option value="hard">Difficile</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+
+            <div class="menu-section">
+                <label>Score maximum:</label>
+                <select id="maxScoreSelect">
+                    <option value="3">3 points</option>
+                    <option value="5" selected>5 points</option>
+                    <option value="7">7 points</option>
+                    <option value="10">10 points</option>
+                    <option value="15">15 points</option>
+                </select>
+            </div>
+
+            <button class="start-btn" id="startGameBtn">COMMENCER</button>
+        </div>
+
+        <div class="pause-screen hidden" id="pauseScreen">
+            <div>⏸️ PAUSE</div>
+            <div style="font-size: 0.5em; margin-top: 20px;">Cliquez ici ou appuyez sur P pour reprendre</div>
+        </div>
+
+        <div class="victory-screen hidden" id="victoryScreen">
+            <h2>🏆 VICTOIRE 🏆</h2>
+            <p id="winnerText">Bravo Joueur 1!</p>
+            <p id="finalScore">5 - 3</p>
+            <button class="victory-btn" id="playAgainBtn">REJOUER</button>
+        </div>
+    </div>
+    <script src="Jeu pong.js"></script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asteroids - Neo Space Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="Jeu asteroid.css">
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="ui-score">
+            <div id="score-text" class="text-3xl font-bold text-blue-400">0</div>
+            <div class="text-[10px] text-blue-900 uppercase tracking-[0.3em]">Points d'Énergie</div>
+        </div>
+
+        <!-- Écran d'accueil -->
+        <div id="ui-overlay">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-2 tracking-tighter">ASTEROIDS</h1>
+                <p class="text-blue-500 text-xs tracking-[0.6em] uppercase">Neo-Tokyo Station</p>
+            </div>
+            
+            <button class="neon-btn" onclick="startGame()">Démarrer</button>
+
+            <div class="mt-16 opacity-40 text-[9px] text-gray-400 uppercase tracking-widest text-center">
+                Clavier: ZQSD + ESPACE | Mobile: Tactile
+            </div>
+        </div>
+
+        <!-- Contrôles Mobiles (Visibles sur écrans tactiles) -->
+        <div class="mobile-controls lg:hidden" id="mobile-ui">
+            <div class="control-group">
+                <div class="btn-touch" id="btn-left">←</div>
+                <div class="btn-touch" id="btn-right">→</div>
+            </div>
+            <div class="control-group">
+                <div class="btn-touch" id="btn-thrust">▲</div>
+                <div class="btn-touch" id="btn-fire" style="color: #ff0055; border-color: #ff005566;">⚡</div>
+            </div>
+        </div>
+    </div>
+    <script src="Jeu asteroid.js"></script>
+</body>
+</html>

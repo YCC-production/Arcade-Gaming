@@ -1,0 +1,434 @@
+ * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            color: white; /* Assure que le texte est blanc par défaut */
+        }
+
+        /* --- NOUVEAU : VIDÉO BACKGROUND --- */
+        #video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -10;
+            object-fit: cover;
+        }
+
+        /* Overlay pour garder les couleurs originales et la lisibilité */
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(10, 25, 41, 0.85) 0%, rgba(26, 58, 82, 0.85) 50%, rgba(45, 90, 123, 0.85) 100%);
+            z-index: -9;
+        }
+
+        /* --- NOUVEAU : COMPTE À REBOURS --- */
+        .countdown-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 2px solid #ffd700;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .countdown-title {
+            color: #ffd700;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px #ffd700;
+        }
+
+        .countdown-timer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .time-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-label {
+            font-size: 0.5em;
+            font-weight: normal;
+            color: #ccc;
+        }
+
+        /* Flocons de neige (Original) */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 1000;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        /* Container principal */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1; /* Au-dessus de la vidéo */
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: clamp(2em, 6vw, 4em);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px #ff0000;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px #ff0000; }
+            50% { text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 60px #ff0000, 0 0 80px #00ff00; }
+        }
+
+        .music-control {
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .music-btn {
+            background: linear-gradient(135deg, #ff0000, #00ff00);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(255, 0, 0, 0.6);
+        }
+
+        /* Grille du calendrier */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        /* Case du calendrier */
+        .calendar-box {
+            position: relative;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+
+        .calendar-box:hover {
+            transform: scale(1.05) rotateY(10deg);
+        }
+
+        .box-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar-box.flipped .box-content {
+            transform: rotateY(180deg);
+        }
+
+        .box-front, .box-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .box-front {
+            background: linear-gradient(135deg, #c31432 0%, #240b36 100%);
+            border: 3px solid #ffd700;
+        }
+
+        .box-back {
+            background: linear-gradient(135deg, #0f9b0f 0%, #000000 100%);
+            transform: rotateY(180deg);
+            font-size: 1.5em;
+        }
+
+        .calendar-box.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .calendar-box.locked:hover {
+            transform: none;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #1a3a52 0%, #0a1929 100%);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+            animation: modalPop 0.5s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #ffd700;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        .modal-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-question {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-validate {
+            background: linear-gradient(135deg, #00ff00, #008000);
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 255, 0, 0.4);
+        }
+
+        .btn-validate:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-close {
+            background: linear-gradient(135deg, #ff0000, #800000);
+            color: white;
+            box-shadow: 0 5px 20px rgba(255, 0, 0, 0.4);
+        }
+
+        .btn-close:hover {
+            transform: scale(1.05);
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .feedback.correct {
+            color: #00ff00;
+        }
+
+        .feedback.incorrect {
+            color: #ff0000;
+        }
+
+        /* --- NOUVEAU : ÉCRAN DE VICTOIRE --- */
+        #victoryScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 3000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .victory-content h1 {
+            font-size: 4em;
+            color: #ffd700;
+            text-shadow: 0 0 30px #ff0000, 0 0 60px #ffd700;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .victory-content p {
+            font-size: 2em;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-30px);}
+            60% {transform: translateY(-15px);}
+        }
+
+        /* Feux d'artifice CSS basiques */
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: explode 1s infinite ease-out;
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0px yellow; }
+            100% { transform: scale(30); opacity: 0; box-shadow: 0 0 0 20px red; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .box-front, .box-back {
+                font-size: 2em;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .victory-content h1 {
+                font-size: 2.5em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .box-front, .box-back {
+                font-size: 1.5em;
+            }
+        }
