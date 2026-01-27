@@ -1,0 +1,87 @@
+:root {
+    --bg-color: #1a1a2e;
+    --panel-color: #16213e;
+    --accent-color: #4ecca3;
+    --text-color: #eeeeee;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+#game-container {
+    width: 95%;
+    max-width: 500px;
+    background: var(--panel-color);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.screen { display: flex; flex-direction: column; align-items: center; }
+.hidden { display: none !important; }
+
+h1 { margin-top: 0; color: var(--accent-color); }
+
+/* Boutons Menu */
+button {
+    background: var(--accent-color);
+    border: none;
+    color: #1a1a2e;
+    padding: 15px 25px;
+    margin: 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.1em;
+    cursor: pointer;
+    width: 80%;
+}
+
+/* Zone de jeu */
+.status-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+canvas {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+    touch-action: none;
+}
+
+/* Contrôles tactiles optimisés */
+.controls { margin-top: 20px; }
+.controls .row { display: flex; justify-content: center; }
+.controls button {
+    width: 65px;
+    height: 65px;
+    margin: 5px;
+    font-size: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #30475e;
+    color: white;
+}
+
+.win-animation img {
+    width: 100%;
+    border-radius: 15px;
+    margin: 20px 0;
+}

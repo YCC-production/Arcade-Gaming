@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maze Master - Mobile</title>
+    <link rel="stylesheet" href="Jeu labyrinthe.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="main-menu" class="screen">
+            <h1>Labyrinthe</h1>
+            <p>Choisissez votre difficulté :</p>
+            <div class="difficulty-buttons">
+                <button data-difficulty="facile">Facile</button>
+                <button data-difficulty="normal">Normal</button>
+                <button data-difficulty="difficile">Difficile</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div class="status-bar">
+                <span id="level-display">Niveau : 1/10</span>
+                <span id="moves-display">Pas : 0</span>
+            </div>
+            <canvas id="mazeCanvas"></canvas>
+            <div class="controls">
+                <div class="row"><button id="up-btn">▲</button></div>
+                <div class="row">
+                    <button id="left-btn">◀</button>
+                    <button id="down-btn">▼</button>
+                    <button id="right-btn">▶</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="win-screen" class="screen hidden">
+            <h1 class="win-title">BRAVO !</h1>
+            <p>Vous avez traversé les 10 niveaux.</p>
+            <div class="win-animation">
+                <img src="https://files.oaiusercontent.com/file-70560e..." alt="Victoire">
+            </div>
+            <button id="restart-btn">Menu Principal</button>
+        </div>
+    </div>
+    <script src="Jeu labyrinthe.js"></script>
+</body>
+</html>
